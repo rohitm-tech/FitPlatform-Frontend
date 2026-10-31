@@ -1,16 +1,16 @@
-import { useEffect, useRef, useState } from 'react';
-import { useQueryClient } from '@tanstack/react-query';
-import { Link } from 'react-router-dom';
-import { ArrowLeft, Upload, CheckCircle2, Activity } from 'lucide-react';
-import toast from 'react-hot-toast';
-import { usePerformance } from '../../queries/usePerformance';
-import { api } from '../../services/api';
+import { useEffect, useRef, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
+import { Link } from "react-router-dom";
+import { ArrowLeft, Upload, CheckCircle2, Activity } from "lucide-react";
+import toast from "react-hot-toast";
+import { usePerformance } from "../../queries/usePerformance";
+import { api } from "../../services/api";
 export default function RecoveryPage() {
   const { data, isLoading, isError, refetch } = usePerformance();
   const queries = useQueryClient();
   const [busy, setBusy] = useState(false);
-  const [formError, setFormError] = useState('');
-  const [importError, setImportError] = useState('');
+  const [formError, setFormError] = useState("");
+  const [importError, setImportError] = useState("");
   const errorRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     if (formError) errorRef.current?.focus();
@@ -18,74 +18,74 @@ export default function RecoveryPage() {
   const [consent, setConsent] = useState(false);
   const [date, setDate] = useState(new Date().toISOString().slice(0, 10));
   const [values, setValues] = useState<Record<string, string>>({
-    sleepMinutes: '',
-    restingHeartRate: '',
-    hrvMs: '',
-    steps: '',
-    fatigue: '',
-    soreness: '',
+    sleepMinutes: "",
+    restingHeartRate: "",
+    hrvMs: "",
+    steps: "",
+    fatigue: "",
+    soreness: "",
   });
-  const [json, setJson] = useState('');
-  const [source, setSource] = useState('Watch export');
-  const [notes, setNotes] = useState('');
+  const [json, setJson] = useState("");
+  const [source, setSource] = useState("Watch export");
+  const [notes, setNotes] = useState("");
   const refresh = () =>
-    queries.invalidateQueries({ queryKey: ['performance'] });
+    queries.invalidateQueries({ queryKey: ["performance"] });
   const save = async (e: React.FormEvent) => {
     e.preventDefault();
-    setFormError('');
-    if (!Object.values(values).some((v) => v !== '')) {
-      setFormError('Enter at least one recovery measurement.');
+    setFormError("");
+    if (!Object.values(values).some((v) => v !== "")) {
+      setFormError("Enter at least one recovery measurement.");
       return;
     }
     setBusy(true);
     try {
       const payload = Object.fromEntries(
         Object.entries(values)
-          .filter(([, v]) => v !== '')
+          .filter(([, v]) => v !== "")
           .map(([k, v]) => [k, Number(v)]),
       );
-      await api.post('/performance/daily', { date, ...payload, notes });
-      toast.success('Recovery saved. Automatic review queued.');
+      await api.post("/performance/daily", { date, ...payload, notes });
+      toast.success("Recovery saved. Automatic review queued.");
       await refresh();
     } catch (e: any) {
       setFormError(
         e.response?.data?.errors?.[0] ||
-          'Could not save this check-in. Your entries are still here; try again.',
+          "Could not save this check-in. Your entries are still here; try again.",
       );
     } finally {
       setBusy(false);
     }
   };
   const importData = async () => {
-    setImportError('');
+    setImportError("");
     setBusy(true);
     try {
       const parsed = JSON.parse(json);
       if (parsed.sleep?.summary || parsed.summary?.totalMinutesAsleep != null) {
-        await api.post('/performance/import/fitbit', {
+        await api.post("/performance/import/fitbit", {
           ...parsed,
           consent,
           date: parsed.sleep?.[0]?.dateOfSleep || date,
         });
       } else
-        await api.post('/performance/import', {
+        await api.post("/performance/import", {
           consent,
           sourceLabel: source,
           records: Array.isArray(parsed) ? parsed : parsed.records,
         });
-      toast.success('Data imported. Automatic reviews queued.');
+      toast.success("Data imported. Automatic reviews queued.");
       await refresh();
     } catch (e: any) {
       setImportError(
         e.response?.data?.errors?.[0] ||
-          'This file could not be imported. Use the sample format or a Fitbit daily sleep summary.',
+          "This file could not be imported. Use the sample format or a Fitbit daily sleep summary.",
       );
     } finally {
       setBusy(false);
     }
   };
   const sample = () => {
-    setSource('Example format — demo data');
+    setSource("Example format — demo data");
     setJson(
       JSON.stringify(
         [
@@ -122,7 +122,7 @@ export default function RecoveryPage() {
       </div>
       {isError && (
         <div className="product-alert">
-          Could not load recovery data.{' '}
+          Could not load recovery data.{" "}
           <button onClick={() => refetch()}>Retry</button>
         </div>
       )}
@@ -158,12 +158,12 @@ export default function RecoveryPage() {
               />
             </label>
             {[
-              ['sleepMinutes', 'Sleep (minutes)', 0, 1440],
-              ['restingHeartRate', 'Resting heart rate (bpm)', 25, 220],
-              ['hrvMs', 'HRV (ms)', 1, 400],
-              ['steps', 'Steps', 0, 200000],
-              ['fatigue', 'Fatigue (1–10)', 1, 10],
-              ['soreness', 'Soreness (1–10)', 1, 10],
+              ["sleepMinutes", "Sleep (minutes)", 0, 1440],
+              ["restingHeartRate", "Resting heart rate (bpm)", 25, 220],
+              ["hrvMs", "HRV (ms)", 1, 400],
+              ["steps", "Steps", 0, 200000],
+              ["fatigue", "Fatigue (1–10)", 1, 10],
+              ["soreness", "Soreness (1–10)", 1, 10],
             ].map(([key, label, min, max]) => (
               <label key={key}>
                 {label}
@@ -171,11 +171,11 @@ export default function RecoveryPage() {
                   id={`measurement-${key}`}
                   type="number"
                   aria-invalid={
-                    formError && key === 'sleepMinutes' ? true : undefined
+                    formError && key === "sleepMinutes" ? true : undefined
                   }
                   aria-describedby={
-                    formError && key === 'sleepMinutes'
-                      ? 'measurement-error'
+                    formError && key === "sleepMinutes"
+                      ? "measurement-error"
                       : undefined
                   }
                   className="fp-input"
@@ -208,7 +208,7 @@ export default function RecoveryPage() {
               automatically queues a training review.
             </p>
             <button className="primary-action" disabled={busy}>
-              {busy ? 'Saving…' : 'Save recovery check-in'}
+              {busy ? "Saving…" : "Save recovery check-in"}
             </button>
           </div>
         </form>
@@ -245,7 +245,7 @@ export default function RecoveryPage() {
                 onChange={async (e) => {
                   const f = e.target.files?.[0];
                   if (f && f.size <= 1024 * 1024) setJson(await f.text());
-                  else toast.error('Use a JSON file under 1 MB');
+                  else toast.error("Use a JSON file under 1 MB");
                 }}
               />
             </label>
@@ -315,14 +315,14 @@ export default function RecoveryPage() {
             data.reviews.map((r: any) => (
               <article key={r._id}>
                 <div className="review-history-head">
-                  <h3>{r.trigger.replaceAll('_', ' ')}</h3>
+                  <h3>{r.trigger.replaceAll("_", " ")}</h3>
                   <span className="status-pill">
-                    {r.status} · {r.approval.replaceAll('_', ' ')}
+                    {r.status} · {r.approval.replaceAll("_", " ")}
                   </span>
                 </div>
                 <p>
                   {r.analysis?.summary ||
-                    'Your review is queued. This page refreshes automatically.'}
+                    "Your review is queued. This page refreshes automatically."}
                 </p>
                 {r.analysis?.observations?.map((o: string) => (
                   <p className="review-observation" key={o}>
@@ -332,10 +332,10 @@ export default function RecoveryPage() {
                 ))}
                 {r.analysis && (
                   <p className="small-note">
-                    {r.analysis.reason} ·{' '}
-                    {r.aiStatus === 'ready'
-                      ? 'Gemini explanation + rules checks'
-                      : 'Rules checks; AI explanation unavailable'}
+                    {r.analysis.reason} ·{" "}
+                    {r.aiStatus === "ready"
+                      ? "Gemini explanation + rules checks"
+                      : "Rules checks; AI explanation unavailable"}
                   </p>
                 )}
               </article>
@@ -366,18 +366,18 @@ export default function RecoveryPage() {
                   <td>{r.date}</td>
                   <td>
                     {r.sourceLabel || r.source}
-                    {r.source === 'demo' && (
+                    {r.source === "demo" && (
                       <span className="demo-badge">Demo</span>
                     )}
                   </td>
                   <td>
                     {r.sleepMinutes != null
                       ? `${Math.floor(r.sleepMinutes / 60)}h ${r.sleepMinutes % 60}m`
-                      : '—'}
+                      : "—"}
                   </td>
-                  <td>{r.hrvMs ?? '—'}</td>
-                  <td>{r.restingHeartRate ?? '—'}</td>
-                  <td>{r.steps?.toLocaleString() ?? '—'}</td>
+                  <td>{r.hrvMs ?? "—"}</td>
+                  <td>{r.restingHeartRate ?? "—"}</td>
+                  <td>{r.steps?.toLocaleString() ?? "—"}</td>
                 </tr>
               ))}
             </tbody>

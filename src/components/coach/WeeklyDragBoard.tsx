@@ -1,14 +1,17 @@
-import { useMemo } from 'react';
-import { DndContext, useDraggable, useDroppable } from '@dnd-kit/core';
-import type { DragEndEvent } from '@dnd-kit/core';
-import toast from 'react-hot-toast';
-import { useAthleteWorkouts, useRescheduleWorkout } from '../../queries/useAthlete';
-import type { Workout, WorkoutStatus } from '../../types/domain';
+import { useMemo, useState } from "react";
+import { DndContext, useDraggable, useDroppable } from "@dnd-kit/core";
+import type { DragEndEvent } from "@dnd-kit/core";
+import toast from "react-hot-toast";
+import {
+  useAthleteWorkouts,
+  useRescheduleWorkout,
+} from "../../queries/useAthlete";
+import type { Workout, WorkoutStatus } from "../../types/domain";
 
 const STATUS_COLOR: Record<WorkoutStatus, string> = {
-  completed: '#22c55e',
-  skipped: '#ef4444',
-  planned: '#6b7280',
+  completed: "#22c55e",
+  skipped: "#ef4444",
+  planned: "#6b7280",
 };
 
 function startOfWeek(date: Date) {
@@ -21,9 +24,11 @@ function startOfWeek(date: Date) {
 function WorkoutCard({ workout }: { workout: Workout }) {
   const { attributes, listeners, setNodeRef, transform } = useDraggable({
     id: workout._id,
-    disabled: workout.status !== 'planned',
+    disabled: workout.status !== "planned",
   });
-  const style = transform ? { transform: `translate(${transform.x}px, ${transform.y}px)`, zIndex: 10 } : undefined;
+  const style = transform
+    ? { transform: `translate(${transform.x}px, ${transform.y}px)`, zIndex: 10 }
+    : undefined;
 
   return (
     <div
@@ -32,9 +37,9 @@ function WorkoutCard({ workout }: { workout: Workout }) {
       {...attributes}
       className="rounded-md p-1.5 text-xs"
       style={{
-        background: STATUS_COLOR[workout.status] + '33',
+        background: STATUS_COLOR[workout.status] + "33",
         border: `1px solid ${STATUS_COLOR[workout.status]}`,
-        cursor: workout.status === 'planned' ? 'grab' : 'default',
+        cursor: workout.status === "planned" ? "grab" : "default",
         ...style,
       }}
     >
@@ -44,17 +49,23 @@ function WorkoutCard({ workout }: { workout: Workout }) {
 }
 
 function DayColumn({ date, workouts }: { date: Date; workouts: Workout[] }) {
-  const dayKey = date.toISOString().slice(0, 10);
+  const dayKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
   const { setNodeRef, isOver } = useDroppable({ id: dayKey });
 
   return (
     <div
       ref={setNodeRef}
       className="flex min-h-[120px] flex-col gap-1 rounded-lg border p-1.5"
-      style={{ borderColor: isOver ? 'var(--fp-accent-rgb)' : 'var(--fp-border)' }}
+      style={{ borderColor: isOver ? "#77518b" : "var(--fp-border)" }}
     >
-      <p className="text-center text-xs" style={{ color: 'var(--fp-text-muted)' }}>
-        {date.toLocaleDateString(undefined, { weekday: 'short', day: 'numeric' })}
+      <p
+        className="text-center text-xs"
+        style={{ color: "var(--fp-text-muted)" }}
+      >
+        {date.toLocaleDateString(undefined, {
+          weekday: "short",
+          day: "numeric",
+        })}
       </p>
       {workouts.map((w) => (
         <WorkoutCard key={w._id} workout={w} />
@@ -80,6 +91,8 @@ export function WeeklyDragBoard({ athleteId }: { athleteId: string }) {
     to: weekEnd.toISOString(),
   });
   const reschedule = useRescheduleWorkout(athleteId);
+  const [selected, setSelected] = useState("");
+  const [newDate, setNewDate] = useState("");
 
   const days = Array.from({ length: 7 }, (_, i) => {
     const d = new Date(weekStart);
@@ -92,25 +105,90 @@ export function WeeklyDragBoard({ athleteId }: { athleteId: string }) {
     if (!over) return;
     const workout = workouts?.find((w) => w._id === active.id);
     if (!workout) return;
-    const newDate = new Date(over.id as string);
-    newDate.setHours(new Date(workout.date).getHours(), new Date(workout.date).getMinutes());
+    const newDate = new Date(String(over.id) + "T12:00:00");
+    newDate.setHours(
+      new Date(workout.date).getHours(),
+      new Date(workout.date).getMinutes(),
+    );
     reschedule.mutate(
       { workoutId: workout._id, date: newDate.toISOString() },
-      { onError: () => toast.error('Could not reschedule') }
+      { onError: () => toast.error("Could not reschedule") },
     );
   };
 
   return (
-    <DndContext onDragEnd={handleDragEnd}>
-      <div className="grid grid-cols-7 gap-2">
-        {days.map((day) => (
-          <DayColumn
-            key={day.toISOString()}
-            date={day}
-            workouts={(workouts ?? []).filter((w) => new Date(w.date).toDateString() === day.toDateString())}
-          />
-        ))}
-      </div>
-    </DndContext>
+    <div>
+      <DndContext onDragEnd={handleDragEnd}>
+        <div className="table-frame">
+          <div className="grid grid-cols-7 gap-2" style={{ minWidth: 640 }}>
+            {days.map((day) => (
+              <DayColumn
+                key={day.toISOString()}
+                date={day}
+                workouts={(workouts ?? []).filter(
+                  (w) => new Date(w.date).toDateString() === day.toDateString(),
+                )}
+              />
+            ))}
+          </div>
+        </div>
+      </DndContext>
+      <details className="reschedule-controls">
+        <summary>Reschedule without dragging</summary>
+        <form
+          onSubmit={async (e) => {
+            e.preventDefault();
+            if (!selected || !newDate) return;
+            try {
+              await reschedule.mutateAsync({
+                workoutId: selected,
+                date: new Date(newDate + "T12:00:00").toISOString(),
+              });
+              toast.success("Session rescheduled");
+              setSelected("");
+              setNewDate("");
+            } catch {
+              toast.error("Could not reschedule session");
+            }
+          }}
+        >
+          <label className="numeric-field">
+            Planned session
+            <select
+              className="fp-input"
+              value={selected}
+              required
+              onChange={(e) => setSelected(e.target.value)}
+            >
+              <option value="">Choose a session</option>
+              {workouts
+                ?.filter((w) => w.status === "planned")
+                .map((w) => (
+                  <option key={w._id} value={w._id}>
+                    {w.title}
+                  </option>
+                ))}
+            </select>
+          </label>
+          <label className="numeric-field">
+            New date
+            <input
+              className="fp-input"
+              type="date"
+              value={newDate}
+              required
+              onChange={(e) => setNewDate(e.target.value)}
+            />
+          </label>
+          <button
+            className="secondary-action"
+            disabled={reschedule.isPending}
+            type="submit"
+          >
+            {reschedule.isPending ? "Saving…" : "Move session"}
+          </button>
+        </form>
+      </details>
+    </div>
   );
 }

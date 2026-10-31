@@ -1,0 +1,236 @@
+.muscle-detail-shell {
+  width: 360px;
+  flex: none;
+  align-self: flex-start;
+  max-height: 100%;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  border: 1px solid var(--fp-border);
+  border-radius: 16px;
+  background: white;
+}
+.muscle-detail-header {
+  padding: 20px 24px 24px;
+  background: #f5f0f8;
+  border-bottom: 1px solid var(--fp-border);
+}
+.muscle-heading-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 6px;
+}
+.muscle-group-label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  color: #77518b;
+}
+.muscle-close {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  flex: none;
+  border: 1px solid #e5dce9;
+  border-radius: 50%;
+  background: white;
+  color: #716779;
+}
+.muscle-close:hover {
+  background: #ede3f2;
+  color: #4e345c;
+}
+.muscle-detail-header h2 {
+  font-size: 24px;
+  line-height: 1.3;
+  letter-spacing: -0.5px;
+  font-weight: 750;
+  color: #292330;
+}
+.muscle-detail-header > p {
+  font-size: 13px;
+  line-height: 1.8;
+  color: #716779;
+  margin-top: 10px;
+}
+.muscle-exercise-browser {
+  padding: 24px 24px 8px;
+}
+.muscle-section-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+}
+.muscle-section-heading h3 {
+  font-size: 14px;
+  font-weight: 750;
+}
+.muscle-section-heading > span {
+  font-size: 11px;
+  color: #716779;
+  white-space: nowrap;
+}
+.muscle-focus-switch {
+  display: flex;
+  gap: 4px;
+  background: #f4f2f6;
+  border: 1px solid #eae5ee;
+  padding: 4px;
+  border-radius: 9px;
+  margin-top: 18px;
+}
+.muscle-focus-switch button {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 9px;
+  flex: 1;
+  min-width: 0;
+  min-height: 40px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 650;
+  color: #716779;
+}
+.muscle-focus-switch button[aria-pressed="true"] {
+  background: white;
+  color: #684479;
+  box-shadow: 0 1px 3px #29233012;
+}
+.muscle-focus-switch button > span {
+  font-size: 10px;
+  background: #eee7f3;
+  padding: 2px 6px;
+  border-radius: 4px;
+  color: #77518b;
+}
+.muscle-focus-description {
+  color: #716779;
+  font-size: 11px;
+  line-height: 1.6;
+  margin: 13px 0 6px;
+}
+.muscle-exercise-list li + li {
+  border-top: 1px solid #eeeaf1;
+}
+.muscle-exercise-list a {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 15px 0;
+  min-height: 70px;
+  text-decoration: none;
+  border-radius: 4px;
+}
+.muscle-exercise-list a:hover {
+  color: #77518b;
+  background: #faf8fc;
+}
+.muscle-exercise-list a > svg {
+  color: #9b8ca3;
+  flex: none;
+}
+.muscle-exercise-copy {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+}
+.muscle-exercise-copy strong {
+  font-size: 13px;
+  line-height: 1.55;
+  font-weight: 650;
+  overflow-wrap: anywhere;
+}
+.muscle-exercise-copy > span {
+  font-size: 11px;
+  line-height: 1.6;
+  color: #716779;
+  text-transform: capitalize;
+}
+.muscle-detail-footer {
+  border-top: 1px solid var(--fp-border);
+  padding: 19px 24px;
+}
+.muscle-detail-footer a,
+.muscle-panel-empty a {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 32px;
+  color: #77518b;
+  font-size: 12px;
+  font-weight: 700;
+}
+.muscle-detail-footer > p {
+  font-size: 10px;
+  line-height: 1.7;
+  color: #716779;
+  margin-top: 5px;
+}
+.muscle-panel-empty {
+  padding: 32px 26px;
+  font-size: 13px;
+  line-height: 1.85;
+  color: #716779;
+}
+.muscle-empty-symbol {
+  display: grid;
+  place-items: center;
+  width: 56px;
+  height: 56px;
+  background: #f1eaf6;
+  border-radius: 50%;
+  color: #77518b;
+  margin-bottom: 28px;
+}
+.muscle-panel-empty h2 {
+  font-size: 22px;
+  line-height: 1.4;
+  letter-spacing: -0.5px;
+  color: #292330;
+  font-weight: 750;
+  margin: 12px 0;
+}
+.muscle-panel-empty a,
+.muscle-panel-empty button {
+  margin-top: 24px;
+}
+.muscle-no-exercises {
+  padding: 22px 0;
+  font-size: 13px;
+  line-height: 1.8;
+  color: #716779;
+}
+@media (max-width: 1100px) {
+  .muscle-detail-shell {
+    width: 100%;
+    max-height: none;
+  }
+}
+@media (max-width: 600px) {
+  .muscle-detail-header,
+  .muscle-exercise-browser,
+  .muscle-detail-footer {
+    padding-inline: 20px;
+  }
+  .muscle-close {
+    width: 44px;
+    height: 44px;
+  }
+  .muscle-focus-switch button {
+    min-height: 44px;
+  }
+  .muscle-exercise-copy strong {
+    font-size: 14px;
+  }
+  .muscle-exercise-copy > span,
+  .muscle-focus-description {
+    font-size: 12px;
+  }
+}

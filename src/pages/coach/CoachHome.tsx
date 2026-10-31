@@ -1,8 +1,8 @@
-import {useAuth} from '../../hooks/useAuth';
-import { useState } from 'react';
-import { Link } from 'react-router-dom';
-import { motion, useReducedMotion } from 'framer-motion';
-import { useQueryClient } from '@tanstack/react-query';
+import { useAuth } from "../../hooks/useAuth";
+import { useEffect, useState } from "react";
+import { Link, useSearchParams } from "react-router-dom";
+import { motion, useReducedMotion } from "framer-motion";
+import { useQueryClient } from "@tanstack/react-query";
 import {
   ArrowUpRight,
   Check,
@@ -12,56 +12,67 @@ import {
   Search,
   X,
   Sparkles,
-} from 'lucide-react';
-import toast from 'react-hot-toast';
-import { useCoachPerformance } from '../../queries/usePerformance';
-import { useMyAthletes, useInviteAthlete } from '../../queries/useCoach';
-import { api } from '../../services/api';
+} from "lucide-react";
+import toast from "react-hot-toast";
+import { useCoachPerformance } from "../../queries/usePerformance";
+import { useMyAthletes, useInviteAthlete } from "../../queries/useCoach";
+import { api } from "../../services/api";
 export default function CoachHome() {
- const {user}=useAuth();
+  const { user } = useAuth();
   const { data, isLoading, isError, refetch } = useCoachPerformance();
   const { data: roster } = useMyAthletes();
   const invite = useInviteAthlete();
   const query = useQueryClient();
   const reduced = useReducedMotion();
-  const [selected, setSelected] = useState('');
-  const [search, setSearch] = useState('');
-  const [filter, setFilter] = useState('all');
-  const [email, setEmail] = useState('');
+  const [params] = useSearchParams();
+  const [selected, setSelected] = useState(params.get("athlete") || "");
+  useEffect(() => {
+    if (params.get("athlete")) {
+      setSelected(params.get("athlete")!);
+      setFilter("all");
+      setSearch("");
+    }
+  }, [params.get("athlete")]);
+  const [search, setSearch] = useState("");
+  const [filter, setFilter] = useState("all");
+  const [email, setEmail] = useState("");
   const [showInvite, setShowInvite] = useState(false);
+  useEffect(() => {
+    if (params.get("invite") === "1") setShowInvite(true);
+  }, [params.get("invite")]);
   const [busy, setBusy] = useState(false);
   const all = data?.athletes || [];
   const rows = all.filter(
     (r: any) =>
       r.athlete.name.toLowerCase().includes(search.toLowerCase()) &&
-      (filter === 'all' || r.review?.approval === 'pending'),
+      (filter === "all" || r.review?.approval === "pending"),
   );
   const active =
     rows.find((r: any) => String(r.athlete._id) === selected) || rows[0];
   const pending = all.filter(
-    (r: any) => r.review?.approval === 'pending',
+    (r: any) => r.review?.approval === "pending",
   ).length;
   const attention = all.filter(
     (r: any) => r.readiness.score != null && r.readiness.score < 50,
   ).length;
-  const decision = async (value: 'approve' | 'decline') => {
+  const decision = async (value: "approve" | "decline") => {
     setBusy(true);
     try {
       await api.post(`/performance/reviews/${active.review._id}/decision`, {
         decision: value,
       });
       toast.success(
-        value === 'approve'
+        value === "approve"
           ? active.review.analysis?.planDraft
-            ? 'Draft saved to your templates'
-            : 'Adjustment approved'
-          : 'Original plan retained',
+            ? "Draft saved to your templates"
+            : "Adjustment approved"
+          : "Original plan retained",
       );
-      query.invalidateQueries({ queryKey: ['coach-performance'] });
-      query.invalidateQueries({ queryKey: ['athlete-workouts'] });
-      query.invalidateQueries({ queryKey: ['templates'] });
+      query.invalidateQueries({ queryKey: ["coach-performance"] });
+      query.invalidateQueries({ queryKey: ["athlete-workouts"] });
+      query.invalidateQueries({ queryKey: ["templates"] });
     } catch (e: any) {
-      toast.error(e.response?.data?.message || 'Could not save decision');
+      toast.error(e.response?.data?.message || "Could not save decision");
     } finally {
       setBusy(false);
     }
@@ -69,8 +80,8 @@ export default function CoachHome() {
   return (
     <motion.div
       className="product-page"
-      initial={reduced ? false : { opacity: 0.7, transform: 'translateY(8px)' }}
-      animate={{ opacity: 1, transform: 'translateY(0px)' }}
+      initial={reduced ? false : { opacity: 0.7, transform: "translateY(8px)" }}
+      animate={{ opacity: 1, transform: "translateY(0px)" }}
       transition={{ duration: 0.3 }}
     >
       <div className="page-greeting">
@@ -121,11 +132,11 @@ export default function CoachHome() {
             e.preventDefault();
             try {
               await invite.mutateAsync(email);
-              toast.success('Invitation sent to athlete’s account');
-              setEmail('');
+              toast.success("Invitation sent to athlete’s account");
+              setEmail("");
               setShowInvite(false);
             } catch {
-              toast.error('Use an existing athlete account email');
+              toast.error("Use an existing athlete account email");
             }
           }}
         >
@@ -146,7 +157,7 @@ export default function CoachHome() {
       )}
       {isError && (
         <div className="product-alert">
-          Could not load your team.{' '}
+          Could not load your team.{" "}
           <button onClick={() => refetch()}>Retry</button>
         </div>
       )}
@@ -155,14 +166,14 @@ export default function CoachHome() {
           <div className="roster-toolbar">
             <div className="filter-tabs">
               <button
-                className={filter === 'all' ? 'active' : ''}
-                onClick={() => setFilter('all')}
+                className={filter === "all" ? "active" : ""}
+                onClick={() => setFilter("all")}
               >
                 All athletes
               </button>
               <button
-                className={filter === 'review' ? 'active' : ''}
-                onClick={() => setFilter('review')}
+                className={filter === "review" ? "active" : ""}
+                onClick={() => setFilter("review")}
               >
                 Needs review <span>{pending}</span>
               </button>
@@ -197,8 +208,8 @@ export default function CoachHome() {
                       key={r.athlete._id}
                       className={
                         active?.athlete._id === r.athlete._id
-                          ? 'selected-row'
-                          : ''
+                          ? "selected-row"
+                          : ""
                       }
                     >
                       <td>
@@ -208,10 +219,10 @@ export default function CoachHome() {
                         >
                           <span className="initial-avatar">
                             {r.athlete.name
-                              .split(' ')
+                              .split(" ")
                               .map((s: string) => s[0])
                               .slice(0, 2)
-                              .join('')}
+                              .join("")}
                           </span>
                           <span>
                             <strong>{r.athlete.name}</strong>
@@ -221,7 +232,7 @@ export default function CoachHome() {
                       </td>
                       <td>
                         <span className={`readiness-tag ${r.readiness.status}`}>
-                          {r.readiness.score ?? '—'}
+                          {r.readiness.score ?? "—"}
                         </span>
                         <small>{r.readiness.status}</small>
                       </td>
@@ -231,13 +242,13 @@ export default function CoachHome() {
                       </td>
                       <td>
                         <span
-                          className={`review-badge ${r.review?.approval === 'pending' ? 'pending' : ''}`}
+                          className={`review-badge ${r.review?.approval === "pending" ? "pending" : ""}`}
                         >
-                          {r.review?.approval === 'pending'
-                            ? 'Approval needed'
-                            : r.review?.status === 'ready'
-                              ? 'Reviewed'
-                              : r.review?.status || 'No review'}
+                          {r.review?.approval === "pending"
+                            ? "Approval needed"
+                            : r.review?.status === "ready"
+                              ? "Reviewed"
+                              : r.review?.status || "No review"}
                         </span>
                       </td>
                     </tr>
@@ -248,9 +259,9 @@ export default function CoachHome() {
             {isLoading && <p className="panel-body">Loading athlete data…</p>}
             {!isLoading && !rows.length && (
               <p className="panel-body">
-                {filter === 'review'
-                  ? 'No approvals waiting. Your queue is clear.'
-                  : 'No athletes match. Invite an athlete to begin.'}
+                {filter === "review"
+                  ? "No approvals waiting. Your queue is clear."
+                  : "No athletes match. Invite an athlete to begin."}
               </p>
             )}
           </div>
@@ -262,7 +273,7 @@ export default function CoachHome() {
         <aside className="work-panel coach-review">
           <div className="section-heading">
             <div>
-              <h2>{active ? active.athlete.name : 'Athlete review'}</h2>
+              <h2>{active ? active.athlete.name : "Athlete review"}</h2>
               <p>Training decision workspace</p>
             </div>
             <Sparkles size={19} />
@@ -271,7 +282,7 @@ export default function CoachHome() {
             <div className="panel-body">
               <div className="review-profile">
                 <span className={`readiness-tag ${active.readiness.status}`}>
-                  {active.readiness.score ?? '—'} / 100
+                  {active.readiness.score ?? "—"} / 100
                 </span>
                 <span>Latest readiness</span>
               </div>
@@ -286,7 +297,7 @@ export default function CoachHome() {
                   <strong>
                     {active.latest.sleepMinutes != null
                       ? `${Math.floor(active.latest.sleepMinutes / 60)}h ${active.latest.sleepMinutes % 60}m`
-                      : '—'}
+                      : "—"}
                   </strong>
                   <span>Sleep · {active.latest.sourceLabel}</span>
                 </div>
@@ -300,7 +311,7 @@ export default function CoachHome() {
                 <h3>Automatic review</h3>
                 <p>
                   {active.review?.analysis?.summary ||
-                    'No completed review yet. New records will trigger one automatically.'}
+                    "No completed review yet. New records will trigger one automatically."}
                 </p>
                 {active.review?.analysis?.observations?.map((o: string) => (
                   <p key={o} className="review-observation">
@@ -315,27 +326,55 @@ export default function CoachHome() {
                   </p>
                 )}
                 <span className="status-pill">
-                  {active.review?.aiStatus === 'ready'
-                    ? 'Gemini + safety rules'
-                    : active.review?.status === 'queued' ||
-                        active.review?.status === 'processing'
-                      ? 'Review running'
-                      : 'Rules review'}
+                  {active.review?.aiStatus === "ready"
+                    ? "Gemini + safety rules"
+                    : active.review?.status === "queued" ||
+                        active.review?.status === "processing"
+                      ? "Review running"
+                      : "Rules review"}
                 </span>
               </div>
               {active.review?.analysis && (
                 <div className="proposed-change">
                   <h3>
                     {active.review.analysis.planDraft
-                      ? 'Proposed: weekly training plan'
-                      : active.review.analysis.recommendation === 'keep'
-                        ? 'Keep the plan'
-                        : active.review.analysis.recommendation === 'rest'
-                          ? 'Proposed: recovery day'
-                          : 'Proposed: lower training volume'}
+                      ? "Proposed: weekly training plan"
+                      : active.review.analysis.recommendation === "keep"
+                        ? "Keep the plan"
+                        : active.review.analysis.recommendation === "rest"
+                          ? "Proposed: recovery day"
+                          : "Proposed: lower training volume"}
                   </h3>
                   <p>{active.review.analysis.reason}</p>
-                  {active.review.workoutId?.title&&<div className="target-session"><strong>{active.review.workoutId.title}</strong><p>{new Date(active.review.workoutId.date).toLocaleDateString(undefined,{weekday:'short',day:'numeric',month:'short'})}</p><details><summary>Review session targets</summary>{active.review.workoutId.items.map((i:any,n:number)=><p key={n}>{i.exerciseId?.name||'Exercise'} · {i.sets} sets{active.review.analysis.recommendation==='reduce'?` → ${Math.max(1,Math.floor(i.sets*.7))} sets`:''} × {i.reps} reps</p>)}</details></div>}
+                  {active.review.workoutId?.title && (
+                    <div className="target-session">
+                      <strong>{active.review.workoutId.title}</strong>
+                      <p>
+                        {new Date(
+                          active.review.workoutId.date,
+                        ).toLocaleDateString(undefined, {
+                          weekday: "short",
+                          day: "numeric",
+                          month: "short",
+                        })}
+                      </p>
+                      <details>
+                        <summary>Review session targets</summary>
+                        {active.review.workoutId.items.map(
+                          (i: any, n: number) => (
+                            <p key={n}>
+                              {i.exerciseId?.name || "Exercise"} · {i.sets} sets
+                              {active.review.analysis.recommendation ===
+                              "reduce"
+                                ? ` → ${Math.max(1, Math.floor(i.sets * 0.7))} sets`
+                                : ""}{" "}
+                              × {i.reps} reps
+                            </p>
+                          ),
+                        )}
+                      </details>
+                    </div>
+                  )}
                   {active.review.analysis.planDraft && (
                     <div className="plan-draft-preview">
                       {active.review.analysis.planDraft.map((w: any) => (
@@ -345,7 +384,7 @@ export default function CoachHome() {
                           </summary>
                           {w.items.map((i: any) => (
                             <p key={i.exerciseId}>
-                              {i.exerciseName || 'Library exercise'} · {i.sets}{' '}
+                              {i.exerciseName || "Library exercise"} · {i.sets}{" "}
                               × {i.reps}
                             </p>
                           ))}
@@ -361,22 +400,27 @@ export default function CoachHome() {
                       </Link>
                     </div>
                   )}
-                  {active.review.approval === 'pending' ? (
+                  {active.review.approval === "pending" ? (
                     <div className="approval-actions">
                       <button
-                        disabled={busy||(!active.review.analysis.planDraft&&String(active.review.workoutId?.assignedBy)!==String(user?._id))}
+                        disabled={
+                          busy ||
+                          (!active.review.analysis.planDraft &&
+                            String(active.review.workoutId?.assignedBy) !==
+                              String(user?._id))
+                        }
                         className="primary-action"
-                        onClick={() => decision('approve')}
+                        onClick={() => decision("approve")}
                       >
                         <Check size={15} />
                         {active.review.analysis.planDraft
-                          ? 'Approve to templates'
-                          : 'Approve change'}
+                          ? "Approve to templates"
+                          : "Approve change"}
                       </button>
                       <button
                         disabled={busy}
                         className="secondary-action"
-                        onClick={() => decision('decline')}
+                        onClick={() => decision("decline")}
                       >
                         <X size={15} />
                         Keep original
@@ -384,7 +428,7 @@ export default function CoachHome() {
                     </div>
                   ) : (
                     <p className="small-note">
-                      {active.review.approval.replaceAll('_', ' ')}
+                      {active.review.approval.replaceAll("_", " ")}
                     </p>
                   )}
                 </div>
@@ -398,10 +442,10 @@ export default function CoachHome() {
                       await api.post(
                         `/performance/reviews/${active.review._id}/retry`,
                       );
-                      toast.success('Fresh review queued');
+                      toast.success("Fresh review queued");
                       refetch();
                     } catch {
-                      toast.error('A review may already be running');
+                      toast.error("A review may already be running");
                     }
                   }}
                 >

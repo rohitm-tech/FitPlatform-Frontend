@@ -1,3 +1,4 @@
+import { useMyAthletes } from "../../queries/useCoach";
 import { useState } from "react";
 import { api } from "../../services/api";
 import { useParams, Link } from "react-router-dom";
@@ -7,6 +8,10 @@ import { InsightsPanel } from "../../components/workout/InsightsPanel";
 
 export default function AthleteDetailPage() {
   const { athleteId } = useParams();
+  const { data: roster } = useMyAthletes();
+  const athlete = roster?.athletes.find(
+    (row) => row.athlete._id === athleteId,
+  )?.athlete;
   const [summary, setSummary] = useState("");
   const [busy, setBusy] = useState(false);
   const summarize = async () => {
@@ -15,9 +20,7 @@ export default function AthleteDetailPage() {
       const r = await api.post(`/ai/summary/${athleteId}`);
       setSummary(r.data.data.summary);
     } catch {
-      setSummary(
-        "Summary unavailable. Check Gemini configuration and try again.",
-      );
+      setSummary("The weekly summary could not be prepared. Please try again.");
     } finally {
       setBusy(false);
     }
@@ -25,15 +28,18 @@ export default function AthleteDetailPage() {
   if (!athleteId) return null;
 
   return (
-    <div className="mx-auto max-w-4xl px-4 py-8">
+    <div className="product-page athlete-detail-page">
       <Link to="/coach" className="text-sm underline">
         ← Back to athletes
       </Link>
       <h1 className="mt-2 font-display text-2xl font-semibold">
-        Athlete overview
+        {athlete?.name || "Athlete overview"}
       </h1>
 
-      <section className="mt-6">
+      <p className="mt-2 text-sm text-slate-400">
+        Training calendar, session adjustments and recorded progress.
+      </p>
+      <section className="mt-6 page-section">
         <button
           onClick={summarize}
           disabled={busy}

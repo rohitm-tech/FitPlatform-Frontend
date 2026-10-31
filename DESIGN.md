@@ -13,10 +13,10 @@ colors:
 typography:
   headline:
     fontFamily: "Manrope, Segoe UI, sans-serif"
-    fontSize: "36px"
-    fontWeight: 800
+    fontSize: "28px"
+    fontWeight: 750
     lineHeight: 1.25
-    letterSpacing: "-1.2px"
+    letterSpacing: "-0.7px"
   body:
     fontFamily: "Manrope, Segoe UI, sans-serif"
     fontSize: "14px"
@@ -68,9 +68,9 @@ Manrope carries both interface and display text. Workspace headings use the head
 
 ## Layout
 
-Workspaces have a 1320px maximum and 28px desktop gutters; phone gutters reduce to 14–20px. The athlete timeline and companion form a two-column layout; the companion stacks on phones and is also reachable through the AI coach navigation. Coach roster and selected review sit side by side, then stack below 850px. Native horizontal scrolling is allowed within tables and navigation.
+Workspaces have a 1320px maximum and 28px desktop gutters; phone gutters reduce to 20px. The athlete timeline and companion form a two-column layout; the companion stacks on phones and is also reachable through the AI coach navigation. Coach roster and selected review sit side by side, then stack below 850px. Native horizontal scrolling is allowed within tables and navigation.
 
-The landing page has a short headline, an illustrative product workflow, three connected scroll moments, AI examples and concise feature rows. It does not render a 3D body or claim live wearable authorization or checkout.
+The landing page has a short headline, an illustrative product workflow, three connected scroll moments, AI examples and concise feature rows. It does not render a 3D body or claim live wearable authorization. Scroll-linked audience navigation follows athlete, coach, gym and marketplace sections. Catalogue previews come from the database, with demo content identified.
 
 ## Elevation & Depth
 
@@ -104,3 +104,14 @@ Motion: GSAP ScrollTrigger drives the landing workflow; ScrollToPlugin handles p
 - Don't label imported or demo data as a live watch connection.
 - Don't silently change a coach-assigned workout.
 - Don't add anatomy imagery to the landing page.
+
+
+## Shared header and workspaces
+
+The header and product pages share a 1320px outer width, 28px desktop gutters and 20px phone gutters. Workspace headings use 28px/750 Manrope (25px on phones); controls have a 44px minimum. The compact white header groups secondary tools under Explore/Tools and account actions under the avatar. Mobile navigation expands into a labelled panel; Escape closes menus. Notifications use a bounded inbox with read state, timestamps and destination links.
+
+The full AI workspace has a 260px conversation rail and a flexible message pane, with a single-pane history view on phones. Questions enter the transcript immediately and answers have their own pending/failed states. Search, archived conversations and gallery are useful work tools, not decorative card content.
+
+Marketplace cards use flat typographic covers, clear price/scope and provider attribution. Demo badges stay visible. Paid, accepted and fulfilled are distinct states. Coach discovery uses genuine package prices; a single result expands into a horizontal profile/price layout rather than leaving a half-empty grid.
+
+The muscle detail panel is a 360px content-height aside with a lavender identity header, clear close button, primary/supporting filter counts and separated exercise rows. Rows expose database equipment/difficulty and link to technique pages. On phones it flows below the model at full width. Empty, loading and retry states remain useful. Frequent filter actions do not animate.

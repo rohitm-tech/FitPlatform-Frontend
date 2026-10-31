@@ -1,79 +1,135 @@
-import { Link } from 'react-router-dom';
-import { useAppDispatch, useAppSelector } from '../../store/hooks';
-import { clearSelectedMuscle } from '../../store/slices/explorerSlice';
-import { useMuscleDetail } from '../../queries/useMuscles';
+import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
+import { ArrowUpRight, ChevronRight, Crosshair, X } from "lucide-react";
+import { useAppDispatch, useAppSelector } from "../../store/hooks";
+import { clearSelectedMuscle } from "../../store/slices/explorerSlice";
+import { useMuscleDetail } from "../../queries/useMuscles";
+import "../../muscle-panel.css";
 
 export function MusclePanel() {
   const dispatch = useAppDispatch();
-  const selectedMuscleKey = useAppSelector((state) => state.explorer.selectedMuscleKey);
-  const { data, isLoading, isError, refetch } = useMuscleDetail(selectedMuscleKey);
-
-  if (!selectedMuscleKey) {
+  const selectedMuscleKey = useAppSelector(
+    (state) => state.explorer.selectedMuscleKey,
+  );
+  const { data, isLoading, isError, refetch } =
+    useMuscleDetail(selectedMuscleKey);
+  const [focus, setFocus] = useState<"primary" | "supporting">("primary");
+  useEffect(() => setFocus("primary"), [selectedMuscleKey]);
+  if (!selectedMuscleKey)
     return (
-      <div className="p-4 text-sm" style={{ color: 'var(--fp-text-muted)' }}>
-        Tap a muscle on the model to see what it does and which exercises target it.
+      <div className="muscle-panel-empty">
+        <span className="muscle-empty-symbol">
+          <Crosshair size={25} strokeWidth={1.5} />
+        </span>
+        <h2>Start with a muscle.</h2>
+        <p>
+          Select a muscle on the model or choose one from the menu. Find
+          movements that train it and learn the technique.
+        </p>
+        <Link to="/exercises">
+          Browse all exercises <ArrowUpRight size={16} />
+        </Link>
       </div>
     );
-  }
-
-  if(isError)return <div role="alert" className="p-4 text-sm">Could not load this muscle. <button className="underline" onClick={()=>refetch()}>Try again</button></div>;
-  if (isLoading || !data) {
-    return <div className="p-4 text-sm" style={{ color: 'var(--fp-text-muted)' }}>Loading…</div>;
-  }
-
-  const { muscle, primaryExercises, secondaryExercises } = data;
-
-  return (
-    <div className="flex h-full flex-col gap-3 overflow-y-auto p-4">
-      <div className="flex items-start justify-between">
-        <div>
-          <h2 className="font-display text-lg font-semibold">{muscle.displayName}</h2>
-          <p className="text-xs uppercase tracking-wide" style={{ color: 'var(--fp-text-muted)' }}>
-            {muscle.group}
-          </p>
-        </div>
-        <button className="text-xs underline" onClick={() => dispatch(clearSelectedMuscle())}>
-          Close
+  if (isError)
+    return (
+      <div role="alert" className="muscle-panel-empty">
+        <h2>This muscle couldn’t be loaded.</h2>
+        <p>Your selection is saved. Try loading its exercises again.</p>
+        <button className="secondary-action" onClick={() => refetch()}>
+          Try again
         </button>
       </div>
-      <p className="text-sm" style={{ color: 'var(--fp-text-muted)' }}>
-        {muscle.description}
-      </p>
-
-      <div>
-        <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide" style={{ color: 'var(--fp-text-muted)' }}>
-          Exercises (primary)
-        </h3>
-        <ul className="flex flex-col gap-1">
-          {primaryExercises.map((ex) => (
-            <li key={ex._id}>
-              <Link to={`/exercises/${ex.slug}`} className="text-sm underline">
-                {ex.name}
-              </Link>
-            </li>
-          ))}
-          {primaryExercises.length === 0 && (
-            <li className="text-sm" style={{ color: 'var(--fp-text-muted)' }}>None yet.</li>
-          )}
-        </ul>
+    );
+  if (isLoading || !data)
+    return (
+      <div className="muscle-panel-empty" role="status">
+        Loading muscle details…
       </div>
-
-      {secondaryExercises.length > 0 && (
-        <div>
-          <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide" style={{ color: 'var(--fp-text-muted)' }}>
-            Also works this muscle
-          </h3>
-          <ul className="flex flex-col gap-1">
-            {secondaryExercises.map((ex) => (
-              <li key={ex._id}>
-                <Link to={`/exercises/${ex.slug}`} className="text-sm underline">
-                  {ex.name}
+    );
+  const { muscle, primaryExercises, secondaryExercises } = data;
+  const exercises = focus === "primary" ? primaryExercises : secondaryExercises;
+  return (
+    <section
+      className="muscle-detail"
+      aria-label={`${muscle.displayName} details`}
+    >
+      <header className="muscle-detail-header">
+        <div className="muscle-heading-row">
+          <h2 aria-live="polite">{muscle.displayName}</h2>
+          <button
+            className="muscle-close"
+            aria-label="Clear selected muscle"
+            onClick={() => dispatch(clearSelectedMuscle())}
+          >
+            <X size={18} />
+          </button>
+        </div>
+        <span className="muscle-group-label">{muscle.group}</span>
+        <p>{muscle.description}</p>
+      </header>
+      <div className="muscle-exercise-browser">
+        <div className="muscle-section-heading">
+          <h3>Train this muscle</h3>
+          <span>
+            {primaryExercises.length + secondaryExercises.length} exercises
+          </span>
+        </div>
+        <div
+          className="muscle-focus-switch"
+          role="group"
+          aria-label="Exercise muscle involvement"
+        >
+          <button
+            aria-pressed={focus === "primary"}
+            onClick={() => setFocus("primary")}
+          >
+            Primary <span>{primaryExercises.length}</span>
+          </button>
+          <button
+            aria-pressed={focus === "supporting"}
+            onClick={() => setFocus("supporting")}
+          >
+            Supporting <span>{secondaryExercises.length}</span>
+          </button>
+        </div>
+        <p className="muscle-focus-description">
+          {focus === "primary"
+            ? "Movements that target this muscle directly."
+            : "Movements where this muscle helps the main movers."}
+        </p>
+        {exercises.length ? (
+          <ul className="muscle-exercise-list">
+            {exercises.map((exercise) => (
+              <li key={exercise._id}>
+                <Link to={`/exercises/${exercise.slug}`}>
+                  <span className="muscle-exercise-copy">
+                    <strong>{exercise.name}</strong>
+                    <span>
+                      {exercise.equipment?.length
+                        ? exercise.equipment.join(" · ").replace(/_/g, " ")
+                        : "No equipment"}
+                      {exercise.difficulty ? ` · ${exercise.difficulty}` : ""}
+                    </span>
+                  </span>
+                  <ChevronRight size={17} aria-hidden="true" />
                 </Link>
               </li>
             ))}
           </ul>
-        </div>
-      )}
-    </div>
+        ) : (
+          <p className="muscle-no-exercises">
+            No {focus} exercises are listed yet. Try the other group or explore
+            the library.
+          </p>
+        )}
+      </div>
+      <footer className="muscle-detail-footer">
+        <Link to={`/exercises?muscle=${muscle._id}`}>
+          Open in exercise library <ArrowUpRight size={16} />
+        </Link>
+        <p>Open a movement for instructions and technique.</p>
+      </footer>
+    </section>
   );
 }

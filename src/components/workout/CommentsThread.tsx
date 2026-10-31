@@ -1,49 +1,94 @@
-import { useState } from 'react';
-import { useAuth } from '../../hooks/useAuth';
-import { useComments, useCreateComment } from '../../queries/useAthlete';
-
-interface CommentsThreadProps {
+import { useState } from "react";
+import type { FormEvent } from "react";
+import { useAuth } from "../../hooks/useAuth";
+import { useComments, useCreateComment } from "../../queries/useAthlete";
+export function CommentsThread({
+  athleteId,
+  workoutId,
+  workoutLogId,
+}: {
   athleteId: string;
   workoutId?: string;
   workoutLogId?: string;
-}
-
-export function CommentsThread({ athleteId, workoutId, workoutLogId }: CommentsThreadProps) {
+}) {
   const { user } = useAuth();
-  const { data: comments } = useComments(athleteId, { workoutId, workoutLogId });
-  const createComment = useCreateComment(athleteId);
-  const [text, setText] = useState('');
-
-  const handleSubmit = async () => {
-    if (!text.trim()) return;
-    await createComment.mutateAsync({ workoutId, workoutLogId, text });
-    setText('');
+  const query = useComments(athleteId, { workoutId, workoutLogId });
+  const create = useCreateComment(athleteId);
+  const [text, setText] = useState("");
+  const [error, setError] = useState("");
+  const submit = async (e: FormEvent) => {
+    e.preventDefault();
+    if (!text.trim() || create.isPending) return;
+    setError("");
+    try {
+      await create.mutateAsync({ workoutId, workoutLogId, text: text.trim() });
+      setText("");
+    } catch {
+      setError("Your note could not be saved. Please try again.");
+    }
   };
-
   return (
-    <div className="mt-3 flex flex-col gap-2">
-      <ul className="flex flex-col gap-2">
-        {comments?.map((comment) => (
-          <li key={comment._id} className="text-sm">
-            <span className="font-medium">{comment.authorId.name}</span>{' '}
-            <span style={{ color: 'var(--fp-text-muted)' }}>{comment.text}</span>
-          </li>
-        ))}
-      </ul>
+    <details className="coach-notes">
+      <summary>
+        Coach & athlete notes
+        {query.data?.length ? ` (${query.data.length})` : ""}
+      </summary>
+      {query.isLoading ? (
+        <p className="section-note" role="status">
+          Loading notes…
+        </p>
+      ) : query.isError ? (
+        <p className="field-error">
+          Notes couldn’t be loaded.{" "}
+          <button onClick={() => query.refetch()}>Retry</button>
+        </p>
+      ) : (
+        <ul>
+          {query.data?.map((comment) => (
+            <li key={comment._id}>
+              <strong>{comment.authorId?.name || "Former member"}</strong>
+              <time>{new Date(comment.createdAt).toLocaleDateString()}</time>
+              <p>{comment.text}</p>
+            </li>
+          ))}
+          {!query.data?.length && (
+            <li className="section-note">
+              No notes yet. Add context for your coach or athlete.
+            </li>
+          )}
+        </ul>
+      )}
       {user && (
-        <div className="flex gap-2">
+        <form onSubmit={submit}>
+          <label
+            className="sr-only"
+            htmlFor={`note-${workoutId || workoutLogId}`}
+          >
+            Add a session note
+          </label>
           <input
+            id={`note-${workoutId || workoutLogId}`}
             className="fp-input"
-            placeholder="Add a comment…"
             value={text}
             onChange={(e) => setText(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && handleSubmit()}
+            placeholder="Add a session note…"
+            required
+            maxLength={2000}
           />
-          <button className="rounded-lg border px-3 py-1 text-sm" style={{ borderColor: 'var(--fp-border)' }} onClick={handleSubmit}>
-            Send
+          <button
+            className="secondary-action"
+            disabled={create.isPending || !text.trim()}
+            type="submit"
+          >
+            {create.isPending ? "Saving…" : "Send"}
           </button>
-        </div>
+        </form>
       )}
-    </div>
+      {error && (
+        <p className="field-error" role="alert">
+          {error}
+        </p>
+      )}
+    </details>
   );
 }

@@ -13,20 +13,27 @@ export default function AdminHome() {
   const [users, setUsers] = useState<Person[]>([]);
   const [search, setSearch] = useState("");
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState("");
 
-  const load = () =>
-    api
-      .get("/admin/users")
-      .then((r) => setUsers(r.data.data))
-      .catch(() => setError("Could not load accounts. Try again."));
+  const load = async () => {
+    setError("");
+    try {
+      const [accounts, gymsResult] = await Promise.all([
+        api.get("/admin/users"),
+        api.get("/admin/gyms"),
+      ]);
+      setUsers(accounts.data.data);
+      setGyms(gymsResult.data.data);
+    } catch {
+      setError("Accounts could not be loaded. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
     load();
-    api
-      .get("/admin/gyms")
-      .then((r) => setGyms(r.data.data))
-      .catch(() => setError("Could not load gyms"));
   }, []);
 
   const grant = async (user: Person, role: string) => {
@@ -34,7 +41,9 @@ export default function AdminHome() {
     try {
       await api.patch(`/admin/users/${user._id}/roles`, {
         roles: user.roles.includes(role)
-          ? (user.roles.filter((r) => r !== role).length?user.roles.filter((r) => r !== role):["athlete"])
+          ? user.roles.filter((r) => r !== role).length
+            ? user.roles.filter((r) => r !== role)
+            : ["athlete"]
           : [...user.roles, role],
       });
       toast.success("Account access updated");
@@ -47,7 +56,7 @@ export default function AdminHome() {
   };
 
   return (
-    <div className="mx-auto max-w-6xl px-4 py-10">
+    <div className="product-page admin-page">
       <h1 className="font-display text-3xl font-semibold">
         Platform management
       </h1>
@@ -65,7 +74,23 @@ export default function AdminHome() {
         value={search}
         onChange={(e) => setSearch(e.target.value)}
       />
-      {error && <p role="alert">{error}</p>}
+      {error && (
+        <div className="form-feedback" role="alert">
+          {error}
+          <button className="row-action" onClick={load}>
+            Retry
+          </button>
+        </div>
+      )}
+      {loading && (
+        <p className="page-state mt-6" role="status">
+          Loading accounts…
+        </p>
+      )}
+      {!loading &&
+        !users.some((u) =>
+          `${u.name} ${u.email}`.toLowerCase().includes(search.toLowerCase()),
+        ) && <p className="empty-copy">No accounts match your search.</p>}
       <div className="mt-6 space-y-3">
         {users
           .filter((u) =>
@@ -101,6 +126,12 @@ export default function AdminHome() {
       </div>
       <section className="mt-10 border-t pt-8">
         <h2 className="text-xl font-semibold">Gyms</h2>
+        {!loading && !gyms.length && (
+          <p className="empty-copy">
+            No gyms have been provisioned yet. Grant gym-owner access to create
+            one.
+          </p>
+        )}
         {gyms.map((g) => (
           <div
             className="mt-4 flex flex-wrap justify-between gap-2 border-b py-3"

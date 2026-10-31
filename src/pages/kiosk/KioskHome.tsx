@@ -1,19 +1,30 @@
-import {useAppDispatch} from '../../store/hooks';
-import {setHeatData,clearSelectedMuscle} from '../../store/slices/explorerSlice';
+import { useAppDispatch } from "../../store/hooks";
+import {
+  setHeatData,
+  clearSelectedMuscle,
+} from "../../store/slices/explorerSlice";
 import { Suspense, lazy, useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { api } from "../../services/api";
 const BodyCanvas = lazy(() => import("../../3d/BodyExplorerCanvas"));
 export default function KioskHome() {
   const { gymId = "" } = useParams();
-  const dispatch=useAppDispatch();
+  const dispatch = useAppDispatch();
 
+  const storedDevice = () => {
+    try {
+      return JSON.parse(localStorage.getItem(`kiosk:${gymId}`) || "null");
+    } catch {
+      return null;
+    }
+  };
   const credentials = () => ({
     headers: {
-      Authorization: `Bearer ${JSON.parse(localStorage.getItem(`kiosk:${gymId}`) || "{}").deviceToken || ""}`,
+      Authorization: `Bearer ${storedDevice()?.deviceToken || ""}`,
     },
   });
   const [qrEpoch, setQrEpoch] = useState(0);
+  const [qrError, setQrError] = useState(false);
   const [qr, setQr] = useState<any>(null);
   const [gym, setGym] = useState<any>(null);
   const [paired, setPaired] = useState(false);
@@ -24,7 +35,7 @@ export default function KioskHome() {
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
   useEffect(() => {
-    const x = JSON.parse(localStorage.getItem(`kiosk:${gymId}`) || "null");
+    const x = storedDevice();
     if (x) {
       setGym(x.gym);
       setPaired(true);
@@ -32,30 +43,35 @@ export default function KioskHome() {
   }, [gymId]);
   useEffect(() => {
     if (!session) return;
-    let active=true;
+    let active = true;
     const interval = setInterval(async () => {
       try {
         const r = await api.get(
           `/kiosk/session/${session.sessionId}`,
           credentials(),
         );
-        if(active)setSession((s: any) => s?({ ...s, ...r.data.data }):null);
+        if (active)
+          setSession((s: any) => (s ? { ...s, ...r.data.data } : null));
       } catch {
-        if(active)setSession(null);
+        if (active) setSession(null);
       }
     }, 12000);
-    const end = setTimeout(() => setSession(null), Math.max(0,new Date(session.expiresAt).getTime()-Date.now()));
+    const end = setTimeout(
+      () => setSession(null),
+      Math.max(0, new Date(session.expiresAt).getTime() - Date.now()),
+    );
     return () => {
-      active=false;
+      active = false;
       clearInterval(interval);
       clearTimeout(end);
     };
   }, [session?.sessionId]);
   useEffect(() => {
     if (!paired || session) return;
+    setQrError(false);
     let stopped = false;
     let timer: ReturnType<typeof setInterval>;
-    const d = JSON.parse(localStorage.getItem(`kiosk:${gymId}`) || "{}");
+    const d = storedDevice() || {};
     const body = { gymId, deviceId: d.deviceId, deviceToken: d.deviceToken };
     api
       .post("/kiosk-qr/request", body)
@@ -69,32 +85,42 @@ export default function KioskHome() {
               `/kiosk-qr/status/${q.requestId}`,
               body,
             );
-            if(stopped)return;
+            if (stopped) return;
             if (result.data.data) {
               setSession(result.data.data);
               setQr(null);
               clearInterval(timer);
             }
           } catch {
-            if(stopped)return;
+            if (stopped) return;
             setQr(null);
             clearInterval(timer);
             setQrEpoch((x) => x + 1);
           }
         }, 2500);
       })
-      .catch(() => setQr(null));
+      .catch(() => {
+        if (!stopped) {
+          setQr(null);
+          setQrError(true);
+        }
+      });
     return () => {
       stopped = true;
       clearInterval(timer);
     };
   }, [paired, session?.sessionId, gymId, qrEpoch]);
-  useEffect(()=>{
-    const heat:Record<string,number>={};
-    for(const item of session?.workout?.items||[])for(const muscle of item.exerciseId?.primaryMuscles||[])if(muscle.key)heat[muscle.key]=.65;
+  useEffect(() => {
+    const heat: Record<string, number> = {};
+    for (const item of session?.workout?.items || [])
+      for (const muscle of item.exerciseId?.primaryMuscles || [])
+        if (muscle.key) heat[muscle.key] = 0.65;
     dispatch(setHeatData(heat));
-    return()=>{dispatch(setHeatData({}));dispatch(clearSelectedMuscle())};
-  },[session?.workout,dispatch]);
+    return () => {
+      dispatch(setHeatData({}));
+      dispatch(clearSelectedMuscle());
+    };
+  }, [session?.workout, dispatch]);
   const pair = async (e: any) => {
     e.preventDefault();
     setBusy(true);
@@ -116,7 +142,7 @@ export default function KioskHome() {
     setBusy(true);
     setError("");
     try {
-      const d = JSON.parse(localStorage.getItem(`kiosk:${gymId}`) || "{}");
+      const d = storedDevice() || {};
       const r = await api.post(`/kiosk/${gymId}/login`, { ...d, email, pin });
       setSession(r.data.data);
       setEmail("");
@@ -137,9 +163,13 @@ export default function KioskHome() {
     setPin("");
   };
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-[#101411] p-8 text-white">
+    <div className="kiosk-surface flex min-h-screen flex-col items-center justify-center p-8 text-white">
       {gym?.logoUrl && (
-        <img alt={`${gym.name} logo`} src={gym.logoUrl} className="mb-5 h-20 max-w-48 object-contain" />
+        <img
+          alt={`${gym.name} logo`}
+          src={gym.logoUrl}
+          className="mb-5 h-20 max-w-48 object-contain"
+        />
       )}
       <p className="text-lg font-semibold text-emerald-300">
         {gym?.name || "FitPlatform"}
@@ -185,13 +215,22 @@ export default function KioskHome() {
           className="mt-8 w-full max-w-sm rounded-2xl bg-white/10 p-6"
         >
           <h2>Pair this kiosk</h2>
+          <label className="block text-sm mt-4" htmlFor="kiosk-pair-code">
+            Device pairing code
+          </label>
           <input
+            id="kiosk-pair-code"
+            required
+            pattern="[0-9]{6}"
+            minLength={6}
+            autoComplete="off"
             autoFocus
             inputMode="numeric"
             maxLength={6}
             value={code}
-            onChange={(e) => setCode(e.target.value)}
-            aria-label="Six-digit device pairing code" placeholder="6-digit pairing code"
+            onChange={(e) => setCode(e.target.value.replace(/\D/g, ""))}
+            aria-label="Six-digit device pairing code"
+            placeholder="6-digit pairing code"
             className="mt-4 w-full rounded-lg p-3 text-black"
           />
           <button
@@ -220,20 +259,49 @@ export default function KioskHome() {
                 </p>
               </div>
             )}
+            {qrError && (
+              <p className="mt-4 text-sm" role="status">
+                QR check-in is unavailable.{" "}
+                <button
+                  type="button"
+                  className="underline"
+                  onClick={() => setQrEpoch((value) => value + 1)}
+                >
+                  Retry QR code
+                </button>{" "}
+                or use your PIN.
+              </p>
+            )}
+            <label className="block text-sm mt-4" htmlFor="kiosk-member-email">
+              Member email
+            </label>
             <input
+              id="kiosk-member-email"
+              required
+              autoComplete="off"
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              aria-label="Member email" placeholder="Member email"
+              aria-label="Member email"
+              placeholder="Member email"
               className="mt-4 w-full rounded-lg p-3 text-black"
             />
+            <label className="block text-sm mt-4" htmlFor="kiosk-member-pin">
+              Check-in PIN
+            </label>
             <input
+              id="kiosk-member-pin"
+              required
+              pattern="[0-9]{4}"
+              minLength={4}
+              autoComplete="off"
               type="password"
               inputMode="numeric"
               maxLength={4}
               value={pin}
-              onChange={(e) => setPin(e.target.value)}
-              aria-label="Four-digit member PIN" placeholder="4-digit PIN"
+              onChange={(e) => setPin(e.target.value.replace(/\D/g, ""))}
+              aria-label="Four-digit member PIN"
+              placeholder="4-digit PIN"
               className="mt-3 w-full rounded-lg p-3 text-black"
             />
             <button
@@ -248,7 +316,36 @@ export default function KioskHome() {
           </form>
         )
       )}
-      {error && <p className="mt-4 text-red-300">{error}</p>}
+      {session && (
+        <p className="mt-5 text-sm text-white/70">
+          Automatic sign-out at{" "}
+          {new Date(session.expiresAt).toLocaleTimeString(undefined, {
+            hour: "2-digit",
+            minute: "2-digit",
+            second: "2-digit",
+          })}
+          .
+        </p>
+      )}
+      {paired && !session && (
+        <button
+          className="mt-5 text-sm underline"
+          onClick={() => {
+            localStorage.removeItem(`kiosk:${gymId}`);
+            setPaired(false);
+            setGym(null);
+            setQr(null);
+            setError("");
+          }}
+        >
+          Pair a different device
+        </button>
+      )}
+      {error && (
+        <p className="mt-4 text-red-300" role="alert">
+          {error}
+        </p>
+      )}
     </div>
   );
 }

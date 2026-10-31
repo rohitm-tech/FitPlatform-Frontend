@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-10-31T12:49:19.889913+00:00",
+  "generatedAt": "2026-10-31T14:30:00Z",
   "title": "Design System: FitPlatform",
   "extensions": {
     "colorMeta": {
@@ -152,7 +152,15 @@
         "value": "0 25px 70px #5432670a",
         "purpose": "Landing preview only; work surfaces remain flat."
       }
-    ]
+    ],
+    "workspaceLayout": {
+      "maxWidth": "1320px",
+      "desktopGutter": "28px",
+      "phoneGutter": "20px",
+      "heading": "750 28px/1.3 Manrope",
+      "historyRail": "260px",
+      "muscleAside": "360px"
+    }
   },
   "components": [
     {
@@ -160,7 +168,7 @@
       "kind": "button",
       "description": "Primary action extracted from the shipped interface.",
       "html": "<button class=\"ds-primary\">Start session</button>",
-      "css": ".ds-primary{background:rgb(var(--fp-accent-rgb));color:white;padding:10px 14px;border:1px solid transparent;border-radius:8px;font:700 11px Manrope,sans-serif;min-height:38px}.ds-primary:hover{background:#654179}.ds-primary:focus-visible{outline:2px solid #a182b2;outline-offset:3px}",
+      "css": ".ds-primary{background:rgb(var(--fp-accent-rgb));color:white;padding:10px 14px;border:1px solid transparent;border-radius:8px;font:700 11px Manrope,sans-serif;min-height:44px}.ds-primary:hover{background:#654179}.ds-primary:focus-visible{outline:2px solid #a182b2;outline-offset:3px}",
       "refersTo": "button-primary"
     },
     {
@@ -181,9 +189,9 @@
     {
       "name": "Workspace navigation",
       "kind": "nav",
-      "description": "Workspace navigation extracted from the shipped interface.",
+      "description": "Compact role-aware header with secondary tools, notification inbox and account disclosure; expands to phone navigation.",
       "html": "<nav class=\"ds-nav\"><a class=\"ds-active\" href=\"#\">My day</a><a href=\"#\">Recovery</a><a href=\"#\">AI coach</a></nav>",
-      "css": ".ds-nav{display:flex;gap:24px;font:12px Manrope,sans-serif}.ds-nav a{padding:20px 0;color:var(--fp-text-muted);text-decoration:none}.ds-nav .ds-active{color:#77518b;border-bottom:3px solid #805a92}.ds-nav a:focus-visible{outline:2px solid #a182b2;outline-offset:3px}"
+      "css": ".ds-nav{display:flex;gap:4px;font:650 12px Manrope,sans-serif}.ds-nav a{padding:11px 13px;color:#716779;text-decoration:none;border-radius:7px}.ds-nav .ds-active{color:#77518b;background:#f1eaf6}.ds-nav a:focus-visible{outline:2px solid #a182b2;outline-offset:3px}"
     },
     {
       "name": "Status pill",
@@ -202,7 +210,7 @@
   ],
   "narrative": {
     "northStar": "The Connected Training Day",
-    "overview": "The product connects the athlete\u2019s recorded recovery, assigned session and automatic review. Coaches receive an evidence and approval workspace.",
+    "overview": "The product connects the athlete’s recorded recovery, assigned session and automatic review. Coaches receive an evidence and approval workspace.",
     "keyCharacteristics": [
       "Clear white work surfaces and restrained plum navigation.",
       "Visible data provenance, freshness and missing states.",

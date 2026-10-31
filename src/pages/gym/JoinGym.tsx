@@ -1,21 +1,28 @@
+import { useAuth, roleHomePath } from "../../hooks/useAuth";
 import { useState } from "react";
 import { useSearchParams, Link } from "react-router-dom";
 import { api } from "../../services/api";
 export default function JoinGym() {
+  const { activeRole } = useAuth();
   const [params] = useSearchParams();
   const [message, setMessage] = useState("");
   const [busy, setBusy] = useState(false);
   const [done, setDone] = useState(false);
   return (
-    <div className="mx-auto max-w-md px-5 py-16">
+    <div className="product-page invitation-page">
       <h1 className="text-3xl font-semibold">Join your gym</h1>
       <p className="mt-4 text-slate-400">
         Accept using the account matching your invited email address. Your gym
         will see attendance and summary statistics.
       </p>
+      {!params.get("token") && (
+        <p className="form-feedback" role="alert">
+          Open the full invitation link your gym shared with you.
+        </p>
+      )}
       {!done && (
         <button
-          disabled={busy}
+          disabled={busy || !params.get("token")}
           className="mt-6 rounded-lg bg-emerald-600 px-5 py-3"
           onClick={async () => {
             setBusy(true);
@@ -42,8 +49,11 @@ export default function JoinGym() {
           {message}
         </p>
       )}
-      <Link to="/athlete" className="mt-6 block text-emerald-300">
-        Go to your training
+      <Link
+        to={roleHomePath(activeRole || "athlete")}
+        className="mt-6 block text-emerald-300"
+      >
+        Return to your workspace
       </Link>
     </div>
   );

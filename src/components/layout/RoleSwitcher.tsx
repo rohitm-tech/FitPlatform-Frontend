@@ -1,14 +1,14 @@
-import { useNavigate } from 'react-router-dom';
-import { useAuth, roleHomePath } from '../../hooks/useAuth';
-import { useAppDispatch } from '../../store/hooks';
-import { setActiveRole } from '../../store/slices/uiSlice';
-import type { Role } from '../../types/domain';
+import { useNavigate } from "react-router-dom";
+import { useAuth, roleHomePath } from "../../hooks/useAuth";
+import { useAppDispatch } from "../../store/hooks";
+import { setActiveRole } from "../../store/slices/uiSlice";
+import type { Role } from "../../types/domain";
 
 const ROLE_LABEL: Record<Role, string> = {
-  athlete: 'Athlete',
-  coach: 'Coach',
-  gym_owner: 'Gym Owner',
-  admin: 'Admin',
+  athlete: "Athlete",
+  coach: "Coach",
+  gym_owner: "Gym Owner",
+  admin: "Admin",
 };
 
 // Shown only when a user holds more than one role (e.g. coach + athlete).
@@ -24,7 +24,7 @@ export const RoleSwitcher = () => {
   return (
     <select
       className="fp-input !w-auto py-1.5 text-sm"
-      value={activeRole ?? ''}
+      value={activeRole ?? ""}
       onChange={(event) => {
         const role = event.target.value as Role;
         dispatch(setActiveRole(role));

@@ -1,187 +1,407 @@
-import { useEffect, useState } from "react";
-
+import { useEffect, useRef, useState } from "react";
+import type { FormEvent } from "react";
+import { Link, useSearchParams } from "react-router-dom";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { Download, ShieldCheck, Check } from "lucide-react";
 import { api } from "../../services/api";
-
-import toast from "react-hot-toast";
-
 import { useAuth } from "../../hooks/useAuth";
-
+import { useAppDispatch } from "../../store/hooks";
+import { bootstrapAuth } from "../../store/slices/authSlice";
 export default function SettingsPage() {
   const { user } = useAuth();
-  const [confirmation, setConfirmation] = useState("");
-  const [pin, setPin] = useState("");
+  const athlete = user?.roles.includes("athlete");
+  const dispatch = useAppDispatch();
+  const queries = useQueryClient();
+  const [params, setParams] = useSearchParams();
+  const section = params.get("section") || "account";
   const [sharing, setSharing] = useState(
     user?.profile?.shareDetailedLogs || false,
   );
-  const [invites, setInvites] = useState<any[]>([]);
+  const [pin, setPin] = useState("");
   const [busy, setBusy] = useState(false);
-
-  const load = () =>
-    api
-      .get("/member-access/invitations")
-      .then((r) => setInvites(r.data.data))
-      .catch(() => toast.error("Could not load invitations"));
+  const [saved, setSaved] = useState(false);
+  const [error, setError] = useState("");
+  const [confirmation, setConfirmation] = useState("");
+  const [exporting, setExporting] = useState("");
+  const [inviteBusy, setInviteBusy] = useState("");
+  const errorRef = useRef<HTMLDivElement>(null);
+  const invites = useQuery({
+    queryKey: ["account-invites", user?._id],
+    queryFn: async () =>
+      (await api.get("/member-access/invitations")).data.data,
+    enabled: !!athlete,
+  });
   useEffect(() => {
-    load();
-  }, []);
-
-  const save = async (e: React.FormEvent) => {
-    e.preventDefault();
+    if (error) errorRef.current?.focus();
+  }, [error]);
+  const save = async (event: FormEvent) => {
+    event.preventDefault();
+    setError("");
+    setSaved(false);
     setBusy(true);
     try {
       await api.post("/users/onboarding", { shareDetailedLogs: sharing });
       if (pin) await api.post("/users/me/kiosk-pin", { pin });
       setPin("");
-      toast.success("Preferences saved");
-    } catch {
-      toast.error("Could not save preferences");
+      await dispatch(bootstrapAuth());
+      queries.invalidateQueries({ queryKey: ["performance"] });
+      setSaved(true);
+    } catch (e: any) {
+      setError(
+        e.response?.data?.message ||
+          "Preferences could not be saved. Check your connection and try again.",
+      );
     } finally {
       setBusy(false);
     }
   };
-
-  const exportData = async () => {
+  const download = async (format: "json" | "xlsx") => {
+    setExporting(format);
+    setError("");
     try {
-      const r = await api.get("/users/me/export");
-      const url = URL.createObjectURL(
-        new Blob([JSON.stringify(r.data.data, null, 2)], {
-          type: "application/json",
-        }),
+      const result = await api.get(
+        format === "xlsx" ? "/users/me/export.xlsx" : "/users/me/export",
+        format === "xlsx" ? { responseType: "blob" } : undefined,
       );
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = "fitplatform-data.json";
-      a.click();
+      const blob =
+        format === "xlsx"
+          ? result.data
+          : new Blob([JSON.stringify(result.data.data, null, 2)], {
+              type: "application/json",
+            });
+      const url = URL.createObjectURL(blob);
+      const anchor = document.createElement("a");
+      anchor.href = url;
+      anchor.download = `fitplatform-data.${format}`;
+      anchor.click();
       URL.revokeObjectURL(url);
     } catch {
-      toast.error("Could not export data");
+      setError("Your export could not be downloaded. Try again.");
+    } finally {
+      setExporting("");
     }
   };
-
+  const invitation = async (id: string, accept: boolean) => {
+    setInviteBusy(id);
+    setError("");
+    try {
+      await api.patch(`/member-access/invitations/${id}`, { accept });
+      await invites.refetch();
+      queries.invalidateQueries({ queryKey: ["coach-athletes"] });
+    } catch (e: any) {
+      setError(
+        e.response?.data?.message ||
+          "Invitation could not be updated. Try again.",
+      );
+    } finally {
+      setInviteBusy("");
+    }
+  };
+  const tabs = [
+    ["account", "Account"],
+    ...(athlete
+      ? [
+          ["privacy", "Training & privacy"],
+          [
+            "invitations",
+            `Invitations${invites.data?.length ? ` (${invites.data.length})` : ""}`,
+          ],
+        ]
+      : []),
+    ["data", "Your data"],
+  ];
   return (
-    <div className="mx-auto max-w-3xl px-4 py-10">
-      <h1 className="font-display text-3xl font-semibold">Your account</h1>
-      <p className="mt-3 text-slate-400">
-        Control your training privacy and gym check-in.
-      </p>
-      <form
-        onSubmit={save}
-        className="fp-surface mt-8 space-y-5 rounded-xl p-6"
-      >
+    <div className="product-page settings-page">
+      <div className="page-greeting">
         <div>
-          <h2 className="font-semibold">Training privacy</h2>
-          <label className="mt-3 flex items-start gap-3 text-sm">
-            <input
-              type="checkbox"
-              checked={sharing}
-              onChange={(e) => setSharing(e.target.checked)}
-            />
-            Allow my coach to see detailed workout logs
-          </label>
-          <p className="mt-2 text-xs text-slate-400">
-            Your coach can still assign plans and view summary statistics. Gym
-            owners see attendance only.
-          </p>
+          <h1>Your account</h1>
+          <p>Manage your profile, privacy and the people you train with.</p>
         </div>
-        <div>
-          <label htmlFor="pin" className="fp-label">
-            Kiosk PIN
-          </label>
-          <input
-            id="pin"
-            className="fp-input max-w-xs"
-            type="password"
-            inputMode="numeric"
-            pattern="[0-9]{4}"
-            maxLength={4}
-            value={pin}
-            onChange={(e) => setPin(e.target.value)}
-            placeholder="New 4-digit PIN"
-          />
-          <p className="mt-2 text-xs text-slate-400">
-            Leave blank to keep your existing PIN.
-          </p>
-        </div>
-        <button disabled={busy} className="rounded-lg px-4 py-2">
-          {busy ? "Saving…" : "Save preferences"}
-        </button>
-      </form>
-      <section className="mt-8">
-        <h2 className="font-semibold">Coach invitations</h2>
-        {invites.length ? (
-          invites.map((i) => (
-            <div
-              key={i._id}
-              className="mt-3 flex flex-wrap items-center justify-between gap-3 border-b py-4"
-            >
-              <span>{i.coachId?.name} wants to coach you</span>
-              <div className="flex gap-3">
-                {[true, false].map((accept) => (
-                  <button
-                    key={String(accept)}
-                    className="rounded-lg border px-4 py-2 text-sm"
-                    onClick={async () => {
-                      try {
-                        await api.patch(`/member-access/invitations/${i._id}`, {
-                          accept,
-                        });
-                        load();
-                      } catch {
-                        toast.error("Could not update invitation");
-                      }
-                    }}
-                  >
-                    {accept ? "Accept" : "Decline"}
-                  </button>
-                ))}
-              </div>
-            </div>
-          ))
-        ) : (
-          <p className="mt-3 text-sm text-slate-400">No pending invitations.</p>
-        )}
-      </section>
-      <section className="mt-8 border-t pt-6">
-        <h2 className="font-semibold">Your data</h2>
-        <button
-          onClick={exportData}
-          className="mt-4 rounded-lg border px-4 py-2 text-sm"
-        >
-          Download my data
-        </button>
-        <div className="mt-8 border-t pt-6">
-          <h3 className="font-semibold text-red-300">Delete account</h3>
-          <p className="mt-2 text-sm text-slate-400">
-            This permanently deletes your profile and personal training records.
-            Gym owners must transfer ownership first. Type DELETE to continue.
-          </p>
-          <input
-            aria-label="Type DELETE to confirm"
-            className="fp-input mt-3 max-w-xs"
-            value={confirmation}
-            onChange={(e) => setConfirmation(e.target.value)}
-          />
+      </div>
+      <nav className="settings-tabs" aria-label="Account settings">
+        {tabs.map(([id, label]) => (
           <button
-            type="button"
-            disabled={confirmation !== "DELETE" || busy}
-            className="ml-3 mt-3 rounded-lg border border-red-800 px-4 py-2 text-sm text-red-300"
-            onClick={async () => {
-              setBusy(true);
-              try {
-                await api.delete("/users/me");
-                window.location.assign("/");
-              } catch (e: any) {
-                toast.error(
-                  e.response?.data?.message || "Could not delete account",
-                );
-                setBusy(false);
-              }
+            key={id}
+            aria-current={section === id ? "page" : undefined}
+            onClick={() => {
+              setParams({ section: id });
+              setError("");
+              setSaved(false);
             }}
           >
-            Delete my account
+            {label}
+          </button>
+        ))}
+      </nav>
+      {error && (
+        <div
+          className="form-feedback"
+          ref={errorRef}
+          tabIndex={-1}
+          role="alert"
+        >
+          {error}
+        </div>
+      )}
+      {section === "account" && (
+        <section className="settings-row">
+          <div>
+            <h2>Profile</h2>
+            <p className="settings-description">
+              Your identity and approved workspaces.
+            </p>
+          </div>
+          <div className="settings-panel">
+            <dl className="account-details">
+              <div>
+                <dt>Name</dt>
+                <dd>{user?.name}</dd>
+              </div>
+              <div>
+                <dt>Email</dt>
+                <dd>{user?.email}</dd>
+              </div>
+              <div>
+                <dt>Account access</dt>
+                <dd>
+                  {user?.roles
+                    .map((role) => role.replace("_", " "))
+                    .join(" · ")}
+                </dd>
+              </div>
+            </dl>
+            {athlete && (
+              <Link className="secondary-action mt-5" to="/onboarding">
+                Update training profile
+              </Link>
+            )}
+            <p className="section-note">
+              Staff access is managed by your platform admin.
+            </p>
+          </div>
+        </section>
+      )}
+      {section === "privacy" && athlete && (
+        <section className="settings-row">
+          <div>
+            <h2>Training privacy & check-in</h2>
+            <p className="settings-description">
+              Choose what your coach can see and set up a PIN for gym kiosks.
+            </p>
+            <p className="settings-description">
+              Your coach can assign workouts and see summary readiness. Detailed
+              logs and recovery readings require your consent.
+            </p>
+          </div>
+          <form className="settings-panel" onSubmit={save}>
+            <label className="flex items-start gap-3">
+              <input
+                type="checkbox"
+                checked={sharing}
+                onChange={(e) => {
+                  setSharing(e.target.checked);
+                  setSaved(false);
+                }}
+              />
+              <span className="text-sm font-medium">
+                Share detailed workout and recovery records with my coach
+              </span>
+            </label>
+            <p className="section-note">
+              Gym owners receive attendance and aggregate statistics.
+            </p>
+            <label htmlFor="kiosk-pin" className="fp-label mt-6">
+              New kiosk PIN <span className="font-normal">(optional)</span>
+            </label>
+            <input
+              id="kiosk-pin"
+              className="fp-input"
+              type="password"
+              autoComplete="off"
+              inputMode="numeric"
+              pattern="[0-9]{4}"
+              maxLength={4}
+              value={pin}
+              onChange={(e) => {
+                setPin(e.target.value.replace(/\D/g, ""));
+                setSaved(false);
+              }}
+              placeholder="4 digits"
+            />
+            <p className="section-note">
+              Leave blank to keep your current PIN. Five failed check-in
+              attempts temporarily lock the PIN.
+            </p>
+            <button className="primary-action" disabled={busy} type="submit">
+              {busy ? "Saving preferences…" : "Save preferences"}
+            </button>
+            {saved && (
+              <p className="assignment-success" role="status">
+                <Check size={17} />
+                Preferences saved.
+              </p>
+            )}
+          </form>
+        </section>
+      )}
+      {section === "invitations" && athlete && (
+        <section className="settings-row">
+          <div>
+            <h2>Coach invitations</h2>
+            <p className="settings-description">
+              Accept an invitation to let a coach assign workouts and review
+              your training.
+            </p>
+            <p className="settings-description">
+              You control detailed record sharing under Training & privacy.
+            </p>
+          </div>
+          <div className="settings-panel">
+            {invites.isLoading ? (
+              <p role="status">Loading invitations…</p>
+            ) : invites.isError ? (
+              <div className="page-state">
+                <p>Invitations couldn’t be loaded.</p>
+                <button onClick={() => invites.refetch()}>Retry</button>
+              </div>
+            ) : invites.data?.length ? (
+              <ul className="data-list">
+                {invites.data.map((invite: any) => (
+                  <li key={invite._id}>
+                    <div className="section-row">
+                      <div>
+                        <strong>{invite.coachId?.name || "A coach"}</strong>
+                        <p>Wants to coach you</p>
+                      </div>
+                      <div className="flex gap-2">
+                        {[true, false].map((accept) => (
+                          <button
+                            key={String(accept)}
+                            className="secondary-action"
+                            disabled={inviteBusy === invite._id}
+                            onClick={() => invitation(invite._id, accept)}
+                          >
+                            {inviteBusy === invite._id
+                              ? "Updating…"
+                              : accept
+                                ? "Accept"
+                                : "Decline"}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <div className="chat-state">
+                <ShieldCheck size={24} />
+                <h3>You’re all caught up.</h3>
+                <p>No pending coach invitations.</p>
+              </div>
+            )}
+          </div>
+        </section>
+      )}
+      {section === "data" && (
+        <>
+          <section className="settings-row">
+            <div>
+              <h2>Download your records</h2>
+              <p className="settings-description">
+                Download a structured Excel workbook or the complete JSON
+                archive, including saved photo content.
+              </p>
+            </div>
+            <div className="settings-panel">
+              <div className="header-actions">
+                <button
+                  className="primary-action"
+                  disabled={!!exporting}
+                  onClick={() => download("xlsx")}
+                >
+                  <Download size={17} />
+                  {exporting === "xlsx"
+                    ? "Preparing Excel…"
+                    : "Download Excel (.xlsx)"}
+                </button>
+                <button
+                  className="secondary-action"
+                  disabled={!!exporting}
+                  onClick={() => download("json")}
+                >
+                  <Download size={17} />
+                  {exporting === "json" ? "Preparing JSON…" : "Download JSON"}
+                </button>
+              </div>
+              <p className="section-note">
+                Excel includes separate sheets with numeric training data,
+                recovery, conversations and account activity. Photos are listed
+                as metadata; the JSON archive contains their content.
+              </p>
+              <p className="section-note">
+                The file contains personal records. Store it somewhere private.
+              </p>
+            </div>
+          </section>
+          <section className="settings-row">
+            <div>
+              <h2 className="text-red-400">Delete account</h2>
+              <p className="settings-description">
+                Permanently removes your profile, personal training records and
+                conversations. This action cannot be undone.
+              </p>
+              <p className="settings-description">
+                Gym owners must transfer ownership first. Accounts with
+                completed payments need support-assisted closure so transaction
+                records can be handled correctly.
+              </p>
+            </div>
+            <div className="settings-panel">
+              <label className="fp-label" htmlFor="delete-account-confirm">
+                Type DELETE to confirm
+              </label>
+              <input
+                id="delete-account-confirm"
+                className="fp-input"
+                autoComplete="off"
+                value={confirmation}
+                onChange={(e) => setConfirmation(e.target.value)}
+              />
+              <button
+                type="button"
+                disabled={confirmation !== "DELETE" || busy}
+                className="delete-account-button"
+                onClick={async () => {
+                  setBusy(true);
+                  setError("");
+                  try {
+                    await api.delete("/users/me");
+                    queries.clear();
+                    window.location.assign("/");
+                  } catch (e: any) {
+                    setError(
+                      e.response?.data?.message ||
+                        "Account could not be deleted.",
+                    );
+                    setBusy(false);
+                  }
+                }}
+              >
+                {busy ? "Deleting…" : "Permanently delete account"}
+              </button>
+            </div>
+          </section>
+        </>
+      )}
+      {!tabs.some(([id]) => id === section) && (
+        <div className="page-state mt-6">
+          <p>This settings section isn’t available for your account.</p>
+          <button onClick={() => setParams({ section: "account" })}>
+            Go to account settings
           </button>
         </div>
-      </section>
+      )}
     </div>
   );
 }

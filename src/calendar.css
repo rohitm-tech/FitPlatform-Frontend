@@ -1,0 +1,178 @@
+.training-calendar-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 24px;
+  align-items: start;
+}
+.calendar-controls {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.calendar-controls > button:not(.icon-control) {
+  font-size: 12px;
+  padding: 6px 10px;
+  border: 1px solid var(--fp-border);
+  border-radius: 7px;
+}
+.calendar-legend {
+  display: flex;
+  gap: 18px;
+  margin: 20px 0;
+  font-size: 12px;
+  color: var(--fp-text-muted);
+}
+.calendar-legend > span {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+.calendar-legend i,
+.calendar-marks i {
+  display: block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+}
+.calendar-legend .planned,
+.calendar-marks .planned {
+  background: #77518b;
+}
+.calendar-legend .completed,
+.calendar-marks .completed {
+  background: #366447;
+}
+.calendar-legend .skipped,
+.calendar-marks .skipped {
+  background: #a64135;
+}
+.calendar-weekdays,
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 4px;
+}
+.calendar-weekdays {
+  font-size: 11px;
+  color: var(--fp-text-muted);
+  text-align: center;
+  margin-bottom: 8px;
+}
+.calendar-day {
+  height: 64px;
+  min-height: 44px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  font-size: 13px;
+  position: relative;
+  background: #faf9fc;
+  font-variant-numeric: tabular-nums;
+}
+.calendar-day:hover {
+  border-color: #c0a5cc;
+}
+.calendar-day.selected {
+  border-color: #77518b;
+  background: #eee6f4;
+  color: #563762;
+}
+.calendar-day.today > span {
+  font-weight: 800;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+.calendar-marks {
+  display: flex;
+  gap: 3px;
+  height: 6px;
+}
+.calendar-day-detail h3 {
+  font-size: 15px;
+  font-weight: 650;
+}
+.calendar-status {
+  font-size: 11px;
+  text-transform: capitalize;
+  padding: 3px 9px;
+  border-radius: 5px;
+  white-space: nowrap;
+}
+.calendar-status.planned {
+  color: #684577;
+  background: #f0eaf5;
+}
+.calendar-status.completed {
+  color: #366447;
+  background: #eaf3ed;
+}
+.calendar-status.skipped {
+  color: #a64135;
+  background: #fff1ed;
+}
+.session-targets {
+  margin: 14px 0;
+  font-size: 13px;
+  color: var(--fp-text-muted);
+}
+.session-targets summary {
+  cursor: pointer;
+  min-height: 32px;
+  color: #77518b;
+}
+.session-targets li {
+  display: flex;
+  justify-content: space-between;
+  gap: 15px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--fp-border);
+}
+.session-targets li:last-child {
+  border: 0;
+}
+.session-targets li span {
+  text-align: right;
+  font-size: 12px;
+}
+.calendar-day-detail .secondary-action {
+  margin: 8px 0 12px;
+}
+.calendar-day-detail .data-list > article {
+  padding: 20px 0;
+}
+.calendar-day-detail .data-list > article:first-child {
+  padding-top: 16px;
+}
+.athlete-detail-page .training-calendar-layout {
+  grid-template-columns: 1fr;
+}
+.calendar-panel {
+  min-width: 0;
+}
+@media (max-width: 800px) {
+  .training-calendar-layout {
+    grid-template-columns: 1fr;
+  }
+  .calendar-day {
+    height: 56px;
+  }
+}
+@media (max-width: 420px) {
+  .calendar-legend {
+    gap: 12px;
+    font-size: 11px;
+  }
+  .calendar-day {
+    height: 46px;
+  }
+  .calendar-controls {
+    gap: 0;
+  }
+  .calendar-controls .icon-control {
+    min-width: 34px;
+  }
+}

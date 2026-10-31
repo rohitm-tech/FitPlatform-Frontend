@@ -42,6 +42,8 @@ export const useLogWorkout = (athleteId: string | undefined) => {
       queryClient.invalidateQueries({ queryKey: ['athlete-workouts', athleteId] });
       queryClient.invalidateQueries({ queryKey: ['athlete-home', athleteId] });
       queryClient.invalidateQueries({ queryKey: ['athlete-insights', athleteId] });
+      queryClient.invalidateQueries({ queryKey: ['athlete-logs', athleteId] });
+      queryClient.invalidateQueries({ queryKey: ['performance'] });
     },
   });
 };

@@ -1,8 +1,11 @@
+import { Link } from "react-router-dom";
+import { useAuth, roleHomePath } from "../../hooks/useAuth";
 import { useState } from "react";
 import { useParams, useSearchParams } from "react-router-dom";
 import { api } from "../../services/api";
 
 export default function KioskApprove() {
+  const { activeRole } = useAuth();
   const { requestId } = useParams();
   const [params] = useSearchParams();
   const [done, setDone] = useState(false);
@@ -22,7 +25,7 @@ export default function KioskApprove() {
     }
   };
   return (
-    <div className="mx-auto max-w-md px-4 py-16">
+    <div className="product-page invitation-page">
       <h1 className="text-3xl font-semibold">
         {done ? "You’re checked in" : "Approve gym check-in"}
       </h1>
@@ -31,15 +34,26 @@ export default function KioskApprove() {
           ? "Continue on the gym kiosk. It will sign you out automatically."
           : "Approve only if you just scanned the QR code on your gym’s kiosk. Your name and today’s workout will appear on that display for 90 seconds."}
       </p>
+      {!params.get("token") && (
+        <p className="form-feedback" role="alert">
+          Scan a fresh QR code on your gym kiosk to approve a check-in.
+        </p>
+      )}
       {!done && (
         <button
-          disabled={busy}
+          disabled={busy || !params.get("token")}
           className="mt-6 rounded-lg bg-emerald-600 px-5 py-3"
           onClick={approve}
         >
           {busy ? "Approving…" : "Approve check-in"}
         </button>
       )}
+      <Link
+        className="page-back mt-6"
+        to={roleHomePath(activeRole || "athlete")}
+      >
+        Return to your workspace
+      </Link>
       {error && (
         <p className="mt-4 text-red-400" role="alert">
           {error}

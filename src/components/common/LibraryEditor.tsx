@@ -9,21 +9,53 @@ export default function LibraryEditor() {
   const [rows, setRows] = useState<any[]>([]);
   const [selected, setSelected] = useState<any>(null);
   const [query, setQuery] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
     setSelected(null);
-    api
-      .get(kind === "exercises" ? "/exercises?limit=100" : "/muscles")
-      .then((r) =>
-        setRows(kind === "exercises" ? r.data.data.exercises : r.data.data),
-      )
-      .catch(() => toast.error("Could not load library"));
+    setRows([]);
+    setQuery("");
+    setError("");
+    setLoading(true);
+    let active = true;
+    (async () => {
+      try {
+        const first = await api.get(
+          kind === "exercises" ? "/exercises?limit=100" : "/muscles",
+        );
+        let loaded =
+          kind === "exercises" ? first.data.data.exercises : first.data.data;
+        if (kind === "exercises" && first.data.data.total > loaded.length) {
+          const pages = Math.ceil(first.data.data.total / 100);
+          const rest = await Promise.all(
+            Array.from({ length: pages - 1 }, (_, i) =>
+              api.get("/exercises", { params: { limit: 100, page: i + 2 } }),
+            ),
+          );
+          loaded = [
+            ...loaded,
+            ...rest.flatMap((result) => result.data.data.exercises),
+          ];
+        }
+        if (active) setRows(loaded);
+      } catch {
+        if (active)
+          setError("Library could not be loaded. Switch categories to retry.");
+      } finally {
+        if (active) setLoading(false);
+      }
+    })();
+    return () => {
+      active = false;
+    };
   }, [kind]);
 
   const save = async (e: React.FormEvent) => {
     e.preventDefault();
     setBusy(true);
+    setError("");
     try {
       const body =
         kind === "exercises"
@@ -41,7 +73,9 @@ export default function LibraryEditor() {
       setRows(rows.map((r) => (r._id === selected._id ? selected : r)));
       toast.success("Library updated");
     } catch {
-      toast.error("Could not save changes");
+      setError(
+        "Changes could not be saved. Your edits are still here. Try again.",
+      );
     } finally {
       setBusy(false);
     }
@@ -52,18 +86,25 @@ export default function LibraryEditor() {
       <h2 className="text-xl font-semibold">Training library</h2>
       <div className="my-4 flex gap-3">
         <button
+          aria-pressed={kind === "exercises"}
           onClick={() => setKind("exercises")}
           className="rounded-lg border px-4 py-2"
         >
           Exercises
         </button>
         <button
+          aria-pressed={kind === "muscles"}
           onClick={() => setKind("muscles")}
           className="rounded-lg border px-4 py-2"
         >
           Muscles
         </button>
       </div>
+      {error && (
+        <div className="form-feedback" role="alert">
+          {error}
+        </div>
+      )}
       <div className="grid gap-6 md:grid-cols-2">
         <div>
           <label htmlFor="library-search" className="fp-label">
@@ -76,6 +117,17 @@ export default function LibraryEditor() {
             className="fp-input"
           />
           <div className="mt-3 max-h-80 overflow-auto">
+            {loading && (
+              <p className="empty-copy" role="status">
+                Loading library…
+              </p>
+            )}
+            {!loading &&
+              !rows.some((row) =>
+                (row.name || row.displayName)
+                  .toLowerCase()
+                  .includes(query.toLowerCase()),
+              ) && <p className="empty-copy">No matching entries.</p>}
             {rows
               .filter((r) =>
                 (r.name || r.displayName)
@@ -85,6 +137,7 @@ export default function LibraryEditor() {
               .map((r) => (
                 <button
                   key={r._id}
+                  aria-pressed={selected?._id === r._id}
                   className="block w-full border-b px-3 py-3 text-left text-sm"
                   onClick={() => setSelected({ ...r })}
                 >
