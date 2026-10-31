@@ -2619,7 +2619,98 @@ html.light .log-date .fp-input {
   font-size: 22px;
 }
 .pricing-heading {
-  margin-top: 28px;
+  margin: 36px 0 14px;
+}
+.platform-kpis {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+.platform-kpi {
+  padding: 18px 20px;
+  border: 1px solid var(--fp-border);
+  border-radius: 16px;
+  background: var(--fp-surface);
+}
+.platform-kpi strong {
+  display: block;
+  font-size: 28px;
+  font-weight: 650;
+  letter-spacing: -0.04em;
+  font-variant-numeric: tabular-nums;
+}
+.platform-kpi span {
+  display: block;
+  margin-top: 6px;
+  color: var(--fp-text-muted);
+  font-size: 13px;
+}
+.pricing-desk .section-note {
+  margin: 12px 0 0;
+}
+.platform-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 22px 0 14px;
+}
+.platform-tabs button {
+  min-height: 40px;
+  padding: 0 16px;
+  border-radius: 999px;
+  border: 1px solid var(--fp-border);
+  background: transparent;
+  color: var(--fp-text-muted);
+  font-size: 14px;
+  font-weight: 600;
+}
+.platform-tabs button[aria-selected="true"] {
+  color: var(--fp-text);
+  border-color: var(--fp-text);
+  background: var(--fp-surface);
+}
+.platform-panel {
+  border: 1px solid var(--fp-border);
+  border-radius: 16px;
+  padding: 18px 20px 8px;
+  background: var(--fp-surface);
+}
+.platform-panel > p {
+  margin: 0 0 16px;
+  color: var(--fp-text-muted);
+  font-size: 14px;
+}
+.platform-panel .platform-kpi {
+  background: transparent;
+}
+.platform-lines {
+  list-style: none;
+  margin: 16px 0 8px;
+  padding: 0;
+}
+.platform-lines li {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) repeat(3, minmax(88px, 0.6fr));
+  gap: 12px;
+  align-items: end;
+  padding: 14px 0;
+  border-top: 1px solid var(--fp-border);
+}
+.platform-lines strong {
+  font-size: 14px;
+  font-weight: 600;
+}
+.platform-lines span {
+  font-variant-numeric: tabular-nums;
+  font-size: 14px;
+  text-align: right;
+}
+.platform-lines em {
+  display: block;
+  margin-bottom: 2px;
+  font-style: normal;
+  font-size: 11px;
+  color: var(--fp-text-muted);
 }
 .pricing-plans {
   display: grid;
@@ -2628,15 +2719,31 @@ html.light .log-date .fp-input {
 }
 .pricing-plan,
 .pricing-fees label,
-.pricing-feature input {
+.pricing-feature {
   min-width: 0;
 }
-.pricing-plan {
+.pricing-plan,
+.pricing-fees-card {
   display: grid;
   gap: 12px;
-  padding: 16px;
+  padding: 18px 20px;
   border: 1px solid var(--fp-border);
-  border-radius: 12px;
+  border-radius: 16px;
+  background: var(--fp-surface);
+}
+.pricing-fees-card {
+  margin-top: 16px;
+}
+.pricing-plan h3,
+.pricing-fees-card h3 {
+  margin: 4px 0 0;
+  font-size: 14px;
+  font-weight: 650;
+}
+.pricing-plan-head {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(120px, 0.8fr);
+  gap: 12px;
 }
 .pricing-plan label,
 .pricing-fees label {
@@ -2645,30 +2752,101 @@ html.light .log-date .fp-input {
   font-size: 12px;
   color: var(--fp-text-muted);
 }
+.pricing-features {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
 .pricing-feature {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto auto auto;
-  gap: 8px;
-  align-items: center;
-  margin-top: 8px;
+  grid-template-columns: minmax(0, 1.5fr) auto 96px auto;
+  gap: 12px;
+  align-items: end;
+  padding: 14px 0;
+  border-top: 1px solid var(--fp-border);
 }
-.pricing-feature input[type="number"] {
-  width: 64px;
+.pricing-check {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  color: var(--fp-text);
+  font-size: 13px;
+}
+.pricing-feature .text-action {
+  min-height: 44px;
 }
 .pricing-fees {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 14px 16px;
-  margin-top: 16px;
+}
+.account-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px 24px;
+  margin-top: 36px;
+}
+.account-toolbar h2 {
+  margin: 0 0 12px;
+  font-size: 22px;
+}
+.account-toolbar .platform-tabs {
+  margin: 0;
+}
+.account-toolbar .fp-label {
+  display: grid;
+  gap: 6px;
+  min-width: min(100%, 280px);
+}
+.platform-tabs span {
+  margin-left: 6px;
+  font-size: 12px;
+  font-weight: 650;
+  color: var(--fp-text-muted);
+}
+.platform-tabs button[aria-selected="true"] span {
+  color: inherit;
+}
+.account-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+  font-size: 12px;
+  color: var(--fp-text-muted);
+}
+.account-plan {
+  display: inline-flex;
+  align-items: center;
+  min-height: 22px;
+  padding: 0 8px;
+  border: 1px solid var(--fp-border);
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 650;
+}
+.account-plan.is-premium {
+  color: var(--fp-accent);
+  border-color: var(--fp-accent);
 }
 .pricing-desk .primary-action {
   margin-top: 16px;
 }
-@media (max-width: 800px) {
+@media (max-width: 900px) {
+  .platform-kpis,
   .pricing-plans,
   .pricing-fees,
+  .pricing-plan-head,
+  .platform-lines li,
   .pricing-feature {
     grid-template-columns: 1fr;
+  }
+  .platform-lines span {
+    text-align: left;
   }
 }
 

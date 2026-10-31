@@ -26,11 +26,30 @@ type Pricing = {
   marketplaceFeePercent: number;
 };
 
+type MoneySlice = {
+  monthMinor: number;
+  yearMinor: number;
+  totalMinor: number;
+  monthCount: number;
+  yearCount: number;
+  count: number;
+};
+
+type RevenueLine = MoneySlice & { kind: string; label: string };
+
+type RevenueSection = MoneySlice & {
+  id: string;
+  label: string;
+  detail: string;
+  lines: RevenueLine[];
+};
+
 type Revenue = {
   totalMinor: number;
   monthMinor: number;
+  yearMinor: number;
   demoMinor: number;
-  breakdown: { kind: string; label: string; amountMinor: number; count: number }[];
+  sections: RevenueSection[];
 };
 
 const rupees = (minor = 0) =>
@@ -42,10 +61,12 @@ const rupees = (minor = 0) =>
 
 const toRupees = (minor: number) => Math.round(minor / 100);
 const toMinor = (rupee: number) => Math.round(rupee * 100);
+const charges = (count: number) => `${count} ${count === 1 ? "charge" : "charges"}`;
 
 export default function PricingDesk() {
   const [pricing, setPricing] = useState<Pricing | null>(null);
   const [revenue, setRevenue] = useState<Revenue | null>(null);
+  const [source, setSource] = useState("athletes");
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
 
@@ -136,6 +157,8 @@ export default function PricingDesk() {
     }
   };
 
+  const section = revenue?.sections.find((item) => item.id === source) ?? revenue?.sections[0];
+
   return (
     <section className="pricing-desk" aria-label="Pricing and earnings">
       <h2>Platform earnings</h2>
@@ -147,37 +170,81 @@ export default function PricingDesk() {
           </button>
         </p>
       )}
-      {revenue && (
+      {revenue && section && (
         <>
-          <div className="coach-facts">
-            <div>
-              <strong>{rupees(revenue.totalMinor)}</strong>
-              <span>Total platform earnings</span>
-            </div>
-            <div>
+          <div className="platform-kpis">
+            <div className="platform-kpi">
               <strong>{rupees(revenue.monthMinor)}</strong>
               <span>Earned this month</span>
             </div>
-            <div>
-              <strong>{rupees(revenue.demoMinor)}</strong>
-              <span>Of which demo charges</span>
+            <div className="platform-kpi">
+              <strong>{rupees(revenue.yearMinor)}</strong>
+              <span>Earned this year</span>
+            </div>
+            <div className="platform-kpi">
+              <strong>{rupees(revenue.totalMinor)}</strong>
+              <span>All-time platform earnings</span>
             </div>
           </div>
-          <ul className="data-list">
-            {revenue.breakdown.map((row) => (
-              <li key={row.kind}>
-                <strong>{row.label}</strong>
-                <span>
-                  {rupees(row.amountMinor)} · {row.count} {row.count === 1 ? "charge" : "charges"}
-                </span>
-              </li>
-            ))}
-          </ul>
           {revenue.demoMinor > 0 && (
             <p className="section-note">
-              Demo charges fill the books until a live payment is captured. Amounts are in rupees.
+              {rupees(revenue.demoMinor)} of the all-time total is demo data, recorded so the books
+              are not empty before a live payment. Amounts are in rupees.
             </p>
           )}
+          <div className="platform-tabs" role="tablist" aria-label="Earnings by source">
+            {revenue.sections.map((item) => (
+              <button
+                key={item.id}
+                type="button"
+                role="tab"
+                aria-selected={item.id === section.id}
+                onClick={() => setSource(item.id)}
+              >
+                {item.label}
+              </button>
+            ))}
+          </div>
+          <div className="platform-panel" role="tabpanel">
+            <p>{section.detail}</p>
+            <div className="platform-kpis">
+              <div className="platform-kpi">
+                <strong>{rupees(section.monthMinor)}</strong>
+                <span>This month · {charges(section.monthCount)}</span>
+              </div>
+              <div className="platform-kpi">
+                <strong>{rupees(section.yearMinor)}</strong>
+                <span>This year · {charges(section.yearCount)}</span>
+              </div>
+              <div className="platform-kpi">
+                <strong>{rupees(section.totalMinor)}</strong>
+                <span>All time · {charges(section.count)}</span>
+              </div>
+            </div>
+            {section.lines.length === 0 ? (
+              <p className="section-note">No charges in this section yet.</p>
+            ) : (
+              <ul className="platform-lines">
+                {section.lines.map((line) => (
+                  <li key={line.kind}>
+                    <strong>{line.label}</strong>
+                    <span>
+                      <em>This month</em>
+                      {rupees(line.monthMinor)}
+                    </span>
+                    <span>
+                      <em>This year</em>
+                      {rupees(line.yearMinor)}
+                    </span>
+                    <span>
+                      <em>All time</em>
+                      {rupees(line.totalMinor)}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
         </>
       )}
 
@@ -187,37 +254,44 @@ export default function PricingDesk() {
           <div className="pricing-plans">
             {pricing.plans.map((plan) => (
               <article key={plan.id} className="pricing-plan">
-                <label>
-                  Plan name
-                  <input
-                    className="fp-input"
-                    value={plan.name}
-                    onChange={(event) => updatePlan(plan.id, { name: event.target.value })}
-                  />
-                </label>
-                <label>
-                  Price in rupees {plan.interval === "month" ? "per month" : "once"}
-                  <input
-                    className="fp-input"
-                    type="number"
-                    min={0}
-                    value={toRupees(plan.priceMinor)}
-                    onChange={(event) =>
-                      updatePlan(plan.id, { priceMinor: toMinor(Number(event.target.value || 0)) })
-                    }
-                  />
-                </label>
-                <ul>
+                <div className="pricing-plan-head">
+                  <label>
+                    Plan name
+                    <input
+                      className="fp-input"
+                      value={plan.name}
+                      onChange={(event) => updatePlan(plan.id, { name: event.target.value })}
+                    />
+                  </label>
+                  <label>
+                    Price (₹) {plan.interval === "month" ? "each month" : "once"}
+                    <input
+                      className="fp-input"
+                      type="number"
+                      min={0}
+                      value={toRupees(plan.priceMinor)}
+                      onChange={(event) =>
+                        updatePlan(plan.id, { priceMinor: toMinor(Number(event.target.value || 0)) })
+                      }
+                    />
+                  </label>
+                </div>
+                <h3>Features on this plan</h3>
+                <ul className="pricing-features">
                   {plan.features.map((feature) => (
                     <li key={feature.key} className="pricing-feature">
-                      <input
-                        aria-label={`${plan.name} feature`}
-                        value={feature.label}
-                        onChange={(event) =>
-                          updateFeature(plan.id, feature.key, { label: event.target.value })
-                        }
-                      />
                       <label>
+                        Feature
+                        <input
+                          className="fp-input"
+                          aria-label={`${plan.name} feature`}
+                          value={feature.label}
+                          onChange={(event) =>
+                            updateFeature(plan.id, feature.key, { label: event.target.value })
+                          }
+                        />
+                      </label>
+                      <label className="pricing-check">
                         <input
                           type="checkbox"
                           checked={feature.included}
@@ -230,10 +304,11 @@ export default function PricingDesk() {
                       <label>
                         Limit
                         <input
+                          className="fp-input"
                           type="number"
                           min={0}
                           value={feature.limit ?? ""}
-                          placeholder="—"
+                          placeholder="None"
                           onChange={(event) =>
                             updateFeature(plan.id, feature.key, {
                               limit: event.target.value === "" ? null : Number(event.target.value),
@@ -261,71 +336,74 @@ export default function PricingDesk() {
               </article>
             ))}
           </div>
-          <div className="pricing-fees">
-            <label>
-              Coach invite fee (₹)
-              <input
-                className="fp-input"
-                type="number"
-                min={0}
-                value={toRupees(pricing.coachInviteFeeMinor)}
-                onChange={(event) =>
-                  setPricing({ ...pricing, coachInviteFeeMinor: toMinor(Number(event.target.value || 0)) })
-                }
-              />
-            </label>
-            <label>
-              Extra coach conversation (₹)
-              <input
-                className="fp-input"
-                type="number"
-                min={0}
-                value={toRupees(pricing.coachChatFeeMinor)}
-                onChange={(event) =>
-                  setPricing({ ...pricing, coachChatFeeMinor: toMinor(Number(event.target.value || 0)) })
-                }
-              />
-            </label>
-            <label>
-              Share of coach earnings (%)
-              <input
-                className="fp-input"
-                type="number"
-                min={0}
-                max={100}
-                step={0.5}
-                value={pricing.coachEarningsFeePercent}
-                onChange={(event) =>
-                  setPricing({ ...pricing, coachEarningsFeePercent: Number(event.target.value || 0) })
-                }
-              />
-            </label>
-            <label>
-              Gym installation each month (₹)
-              <input
-                className="fp-input"
-                type="number"
-                min={0}
-                value={toRupees(pricing.gymMonthlyMinor)}
-                onChange={(event) =>
-                  setPricing({ ...pricing, gymMonthlyMinor: toMinor(Number(event.target.value || 0)) })
-                }
-              />
-            </label>
-            <label>
-              Marketplace fee on each sale (%)
-              <input
-                className="fp-input"
-                type="number"
-                min={0}
-                max={100}
-                step={0.5}
-                value={pricing.marketplaceFeePercent}
-                onChange={(event) =>
-                  setPricing({ ...pricing, marketplaceFeePercent: Number(event.target.value || 0) })
-                }
-              />
-            </label>
+          <div className="pricing-fees-card">
+            <h3>What the platform charges</h3>
+            <div className="pricing-fees">
+              <label>
+                Coach invite fee (₹)
+                <input
+                  className="fp-input"
+                  type="number"
+                  min={0}
+                  value={toRupees(pricing.coachInviteFeeMinor)}
+                  onChange={(event) =>
+                    setPricing({ ...pricing, coachInviteFeeMinor: toMinor(Number(event.target.value || 0)) })
+                  }
+                />
+              </label>
+              <label>
+                Extra coach conversation (₹)
+                <input
+                  className="fp-input"
+                  type="number"
+                  min={0}
+                  value={toRupees(pricing.coachChatFeeMinor)}
+                  onChange={(event) =>
+                    setPricing({ ...pricing, coachChatFeeMinor: toMinor(Number(event.target.value || 0)) })
+                  }
+                />
+              </label>
+              <label>
+                Share of coach earnings (%)
+                <input
+                  className="fp-input"
+                  type="number"
+                  min={0}
+                  max={100}
+                  step={0.5}
+                  value={pricing.coachEarningsFeePercent}
+                  onChange={(event) =>
+                    setPricing({ ...pricing, coachEarningsFeePercent: Number(event.target.value || 0) })
+                  }
+                />
+              </label>
+              <label>
+                Gym installation each month (₹)
+                <input
+                  className="fp-input"
+                  type="number"
+                  min={0}
+                  value={toRupees(pricing.gymMonthlyMinor)}
+                  onChange={(event) =>
+                    setPricing({ ...pricing, gymMonthlyMinor: toMinor(Number(event.target.value || 0)) })
+                  }
+                />
+              </label>
+              <label>
+                Marketplace fee on each sale (%)
+                <input
+                  className="fp-input"
+                  type="number"
+                  min={0}
+                  max={100}
+                  step={0.5}
+                  value={pricing.marketplaceFeePercent}
+                  onChange={(event) =>
+                    setPricing({ ...pricing, marketplaceFeePercent: Number(event.target.value || 0) })
+                  }
+                />
+              </label>
+            </div>
           </div>
           <p className="section-note">
             Wearable imports, the AI coach, and how many coaches an athlete can message are enforced.
