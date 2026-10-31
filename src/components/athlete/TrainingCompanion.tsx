@@ -30,6 +30,15 @@ import toast from "react-hot-toast";
 import "../../companion.css";
 
 type Photo = { mimeType: string; data: string };
+type ExerciseCard = {
+  exerciseId: string;
+  name: string;
+  slug: string;
+  difficulty?: string;
+  equipment?: string[];
+  primaryMuscle?: string | null;
+};
+type ToolTraceEntry = { tool: string; label: string; status?: "done" | "error" };
 type ChatMessage = {
   _id?: string;
   role: "user" | "assistant";
@@ -40,6 +49,8 @@ type ChatMessage = {
   photoId?: string;
   preview?: Photo;
   at?: string;
+  cards?: ExerciseCard[];
+  toolTrace?: ToolTraceEntry[];
 };
 type Thread = {
   _id: string;
@@ -636,6 +647,22 @@ export default function TrainingCompanion({
                       </time>
                     )}
                   </div>
+                  {m.role === "assistant" && m.toolTrace && m.toolTrace.length > 0 && (
+                    <ul className="chat-tool-trace">
+                      {m.toolTrace.map((t, i) => (
+                        <li key={i} className={t.status === "error" ? "trace-error" : ""}>
+                          {t.tool === "search_exercises" ? (
+                            <Search size={12} />
+                          ) : t.tool === "log_recovery" ? (
+                            <Check size={12} />
+                          ) : (
+                            <Sparkles size={12} />
+                          )}
+                          {t.label}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
                   {(m.preview || m.photoId) && (
                     <img
                       className="chat-photo"
@@ -682,6 +709,24 @@ export default function TrainingCompanion({
                   ) : (
                     <div className="chat-markdown">
                       <ReactMarkdown>{m.text}</ReactMarkdown>
+                    </div>
+                  )}
+                  {m.role === "assistant" && m.cards && m.cards.length > 0 && (
+                    <div className="chat-exercise-cards">
+                      {m.cards.map((card) => (
+                        <Link
+                          key={card.exerciseId}
+                          to={`/exercises/${card.slug}`}
+                          className="chat-exercise-card"
+                        >
+                          <strong>{card.name}</strong>
+                          <span className="chat-exercise-meta">
+                            {[card.primaryMuscle, card.difficulty, card.equipment?.[0]]
+                              .filter(Boolean)
+                              .join(" · ")}
+                          </span>
+                        </Link>
+                      ))}
                     </div>
                   )}
                   {m.role === "assistant" &&

@@ -107,11 +107,13 @@
 .chat-message strong {
   font-weight: 650;
 }
-/* History 260px + flexible conversation + one shared border = the full page content width. */
+/* History 260px + flexible conversation + one shared border = the full page content width.
+   100dvh minus the nav (~80px) and the page's own top/bottom padding (~30px) -
+   there's no page-title block above this anymore, so it fills the screen. */
 .ai-workspace {
   display: grid;
   grid-template-columns: 260px minmax(0, 1fr);
-  height: calc(100dvh - 240px);
+  height: calc(100dvh - 110px);
   min-height: 580px;
   max-height: 980px;
   border: 1px solid var(--fp-border);
@@ -375,6 +377,60 @@
 .ai-workspace .from-user .chat-message-meta,
 .companion-compact .from-user .chat-message-meta {
   color: #6d577a;
+}
+.chat-tool-trace {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 2px 0 10px;
+  list-style: none;
+  padding: 0;
+}
+.chat-tool-trace li {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: #77518b;
+  background: #f5f0f8;
+  border-radius: 999px;
+  padding: 4px 10px;
+  width: fit-content;
+}
+.chat-tool-trace li.trace-error {
+  color: #a64135;
+  background: #faeeec;
+}
+.chat-exercise-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 8px;
+  margin-top: 12px;
+  width: 100%;
+}
+.chat-exercise-card {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px 14px;
+  border: 1px solid var(--fp-border);
+  border-radius: 10px;
+  background: white;
+  color: var(--fp-text);
+  transition: border-color 0.15s, transform 0.1s;
+}
+.chat-exercise-card:hover {
+  border-color: #b79ac4;
+  transform: translateY(-1px);
+}
+.chat-exercise-card strong {
+  font-size: 13px;
+  font-weight: 650;
+}
+.chat-exercise-meta {
+  font-size: 11px;
+  color: var(--fp-text-muted);
+  text-transform: capitalize;
 }
 .chat-markdown p {
   white-space: pre-wrap;
@@ -680,7 +736,7 @@
   .ai-workspace {
     display: block;
     position: relative;
-    height: calc(100dvh - 210px);
+    height: calc(100dvh - 90px);
     min-height: 570px;
     max-height: none;
   }
