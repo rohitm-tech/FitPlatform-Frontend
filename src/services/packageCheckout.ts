@@ -65,7 +65,7 @@ export async function payForPackage(
         order_id: order.orderId,
         amount: order.amount,
         currency: order.currency,
-        name: "FitPlatform",
+        name: "Rhythm",
         description: order.title,
         prefill: user,
         theme: { color: "#77518b" },

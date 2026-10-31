@@ -26,6 +26,15 @@
 .header-brand span {
   color: #77518b;
 }
+.brand-logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.brand-logo svg {
+  flex: none;
+  border-radius: 6px;
+}
 .header-desktop-nav {
   display: flex;
   align-items: center;

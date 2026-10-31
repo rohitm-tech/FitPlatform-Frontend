@@ -72,7 +72,7 @@ export function AuthFrame({
             <span>Built around your training day.</span>
             <Link
               to="/#workflow"
-              aria-label="See how FitPlatform connects your training"
+              aria-label="See how Rhythm connects your training"
             >
               <ArrowUpRight size={19} />
             </Link>

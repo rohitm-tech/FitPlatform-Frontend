@@ -13,6 +13,7 @@ import { useAppDispatch } from "../../store/hooks";
 import { logoutUser } from "../../store/slices/authSlice";
 import { RoleSwitcher } from "./RoleSwitcher";
 import { NotificationCenter } from "./NotificationCenter";
+import { Logo } from "../common/Logo";
 import "../../header.css";
 export const Navbar = () => {
   const { isAuthenticated, user, activeRole } = useAuth();
@@ -117,14 +118,14 @@ export const Navbar = () => {
               : "/"
           }
         >
-          fitplatform<span>.</span>
+          <Logo />
         </Link>
         {auth ? (
           <div className="header-auth-switch">
             <span>
               {pathname === "/auth/sign-up"
                 ? "Already have an account?"
-                : "New to FitPlatform?"}
+                : "New to Rhythm?"}
             </span>
             <Link
               to={
@@ -142,7 +143,7 @@ export const Navbar = () => {
               aria-label={
                 isAuthenticated && !publicPage
                   ? "Workspace"
-                  : "About FitPlatform"
+                  : "About Rhythm"
               }
             >
               {isAuthenticated && !publicPage ? (

@@ -51,7 +51,7 @@ export function ListingCover({ listing }: { listing: Listing }) {
         </>
       ) : (
         <div className="programme-cover">
-          <span>fitplatform.</span>
+          <span>rhythm.</span>
           <strong>{listing.title}</strong>
           <small>
             {listing.duration ||

@@ -172,7 +172,7 @@ export default function KioskHome() {
         />
       )}
       <p className="text-lg font-semibold text-emerald-300">
-        {gym?.name || "FitPlatform"}
+        {gym?.name || "Rhythm"}
       </p>
       <h1 className="mt-3 font-display text-4xl font-semibold">
         {session ? `Welcome, ${session.athlete?.name}` : "Check in to train"}

@@ -21,6 +21,7 @@ import {
   Users,
   LockKeyhole,
 } from "lucide-react";
+import { Logo } from "../components/common/Logo";
 import "../landing.css";
 function Workflow() {
   const ref = useRef<HTMLElement>(null);
@@ -552,7 +553,7 @@ export default function Landing() {
       </section>
       <footer className="landing-footer">
         <Link className="product-brand" to="/">
-          fitplatform<span>.</span>
+          <Logo />
         </Link>
         <p>Thoughtful training. Human judgment.</p>
         <div>

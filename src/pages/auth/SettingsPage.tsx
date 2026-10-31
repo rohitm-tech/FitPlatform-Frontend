@@ -72,7 +72,7 @@ export default function SettingsPage() {
       const url = URL.createObjectURL(blob);
       const anchor = document.createElement("a");
       anchor.href = url;
-      anchor.download = `fitplatform-data.${format}`;
+      anchor.download = `rhythm-data.${format}`;
       anchor.click();
       URL.revokeObjectURL(url);
     } catch {

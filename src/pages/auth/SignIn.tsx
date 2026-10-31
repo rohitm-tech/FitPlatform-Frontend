@@ -70,7 +70,7 @@ export default function SignIn() {
         e.status === 429 || e.message?.includes("429")
           ? "Too many sign-in attempts. Please wait before trying again."
           : e.code === "ERR_NETWORK"
-            ? "We could not reach FitPlatform. Check your connection and try again."
+            ? "We could not reach Rhythm. Check your connection and try again."
             : "That email and password did not match. Check your details and try again.",
       );
     } finally {
@@ -135,7 +135,7 @@ export default function SignIn() {
           </button>
         </form>
         <p className="auth-switch">
-          New to FitPlatform? <Link to="/auth/sign-up">Create an account</Link>
+          New to Rhythm? <Link to="/auth/sign-up">Create an account</Link>
         </p>
         <section className="auth-demo" aria-label="Demo accounts">
           <div className="auth-demo-heading">
