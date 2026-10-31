@@ -1,3 +1,4 @@
+import { queryClient } from '../queries/queryClient';
 import { useEffect } from 'react';
 import type { ReactNode } from 'react';
 import { useAppDispatch } from '../store/hooks';
@@ -12,7 +13,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     dispatch(bootstrapAuth());
 
-    const handleLogout = () => dispatch(clearUser());
+    const handleLogout = () => { queryClient.clear(); dispatch(clearUser()); };
     window.addEventListener('auth:logout', handleLogout);
     return () => window.removeEventListener('auth:logout', handleLogout);
   }, [dispatch]);

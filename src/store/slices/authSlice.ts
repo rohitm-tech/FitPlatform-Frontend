@@ -1,3 +1,4 @@
+import { queryClient } from '../../queries/queryClient';
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import { authApi } from '../../services/endpoints/authApi';
 import type { User } from '../../types/domain';
@@ -25,19 +26,21 @@ export const bootstrapAuth = createAsyncThunk('auth/bootstrap', async () => {
 export const loginUser = createAsyncThunk(
   'auth/login',
   async (payload: { email: string; password: string },{rejectWithValue}) => {
-    try{const res = await authApi.login(payload);return res.data.data.user;}catch(error:any){return rejectWithValue({status:error.response?.status,code:error.code,message:error.response?.data?.message||error.message});}
+    try{const res = await authApi.login(payload);await queryClient.cancelQueries();queryClient.clear();return res.data.data.user;}catch(error:any){return rejectWithValue({status:error.response?.status,code:error.code,message:error.response?.data?.message||error.message});}
   }
 );
 
 export const registerUser = createAsyncThunk(
   'auth/register',
   async (payload: { name: string; email: string; password: string; roles?: User['roles'] },{rejectWithValue}) => {
-    try{const res = await authApi.register(payload);return res.data.data.user;}catch(error:any){return rejectWithValue({status:error.response?.status,code:error.code,message:error.response?.data?.message||error.message});}
+    try{const res = await authApi.register(payload);await queryClient.cancelQueries();queryClient.clear();return res.data.data.user;}catch(error:any){return rejectWithValue({status:error.response?.status,code:error.code,message:error.response?.data?.message||error.message});}
   }
 );
 
 export const logoutUser = createAsyncThunk('auth/logout', async () => {
   await authApi.logout();
+  await queryClient.cancelQueries();
+  queryClient.clear();
 });
 
 const authSlice = createSlice({
