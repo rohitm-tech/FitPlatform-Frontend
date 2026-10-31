@@ -72,7 +72,7 @@ function Workflow() {
         <h2>
           One day.
           <br />
-          Everything connected.
+          Fully connected.
         </h2>
         <p>
           From the first recovery signal
@@ -172,7 +172,7 @@ function AudienceFeatures() {
         <h2>
           Built around
           <br />
-          your kind of training.
+          your training.
         </h2>
         <p>One platform. A useful workspace for everyone.</p>
       </div>
@@ -414,7 +414,7 @@ export default function Landing() {
           <h1>
             Your effort.
             <br />
-            <span>A clearer direction.</span>
+            <span>Clear direction.</span>
           </h1>
           <p>
             Training, recovery and coaching.

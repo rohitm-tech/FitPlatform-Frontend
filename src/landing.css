@@ -63,7 +63,7 @@
   border: 1px solid #e5daec;
   border-radius: 24px;
   padding: 24px 26px;
-  box-shadow: 0 25px 70px #5432670a;
+  box-shadow: 0 2px 10px rgba(84, 50, 103, 0.06);
 }
 .hero-day-top {
   display: flex;
@@ -75,9 +75,9 @@
   color: #735680;
 }
 .illustration-label {
-  font-size: 9px;
+  font-size: 11px;
   letter-spacing: 0.03em;
-  color: #716077;
+  color: #5c5064;
   font-weight: 600;
 }
 .hero-signal {
@@ -98,8 +98,8 @@
   flex-shrink: 0;
 }
 .hero-signal small {
-  font-size: 10px;
-  color: #716077;
+  font-size: 12px;
+  color: #5c5064;
 }
 .hero-signal h2 {
   font-size: 23px;
@@ -125,10 +125,10 @@
   border-top: 1px solid #eee7f2;
 }
 .hero-path span {
-  font-size: 10px;
+  font-size: 12px;
   line-height: 1.9;
   flex: 1;
-  color: #716077;
+  color: #5c5064;
 }
 .hero-path strong {
   font-size: 13px;
@@ -146,14 +146,14 @@
   height: 34px;
   display: grid;
   place-items: center;
-  font-size: 10px;
+  font-size: 11px;
   background: #80598f;
   color: #fff;
   border-radius: 9px;
 }
 .hero-note p {
-  font-size: 10px;
-  color: #716077;
+  font-size: 12px;
+  color: #5c5064;
   flex: 1;
   line-height: 1.9;
 }
@@ -163,7 +163,7 @@
   color: #644472;
 }
 .hero-note > svg {
-  color: #716077;
+  color: #5c5064;
 }
 .landing-capabilities {
   max-width: 1204px;
@@ -174,7 +174,7 @@
   display: flex;
   align-items: center;
   gap: 45px;
-  color: #716077;
+  color: #5c5064;
   font-size: 13px;
 }
 .landing-capabilities a {
@@ -215,7 +215,7 @@
 .landing-features > div > p {
   font-size: 14px;
   line-height: 1.9;
-  color: #7d6a8b;
+  color: #6b5a78;
   margin: 24px 0;
 }
 .workflow-intro > a {
@@ -279,7 +279,7 @@
   border: 1px solid #e6dce9;
   border-radius: 20px;
   padding: 4px 10px;
-  font-size: 10px;
+  font-size: 11px;
   color: #886496;
 }
 .landing-ai {
@@ -318,8 +318,8 @@
   flex-wrap: wrap;
   gap: 15px;
   margin-top: 25px;
-  color: #716077;
-  font-size: 9px;
+  color: #5c5064;
+  font-size: 11px;
 }
 .landing-features {
   max-width: 1204px;
@@ -389,7 +389,7 @@
 }
 .landing-footer > p {
   font-size: 11px;
-  color: #716077;
+  color: #5c5064;
 }
 .landing-footer > div {
   margin-left: auto;
@@ -400,9 +400,9 @@
 }
 .landing-footer > small {
   flex-basis: 100%;
-  font-size: 9px;
+  font-size: 11px;
   line-height: 1.9;
-  color: #716077;
+  color: #5c5064;
   border-top: 1px solid #e8e0ec;
   padding-top: 18px;
 }
@@ -772,7 +772,7 @@
 .preview-timeline-row p,
 .preview-gym-row p {
   font-size: 12px;
-  color: #7b6987;
+  color: #685670;
   line-height: 1.75;
   margin-top: 5px;
 }
@@ -784,7 +784,7 @@
 .audience-preview figcaption {
   font-size: 11px;
   line-height: 1.6;
-  color: #7b6987;
+  color: #685670;
   margin: 14px 2px 0;
 }
 .coach-preview {
@@ -804,7 +804,7 @@
 }
 .preview-evidence span {
   font-size: 11px;
-  color: #7b6987;
+  color: #685670;
 }
 .preview-evidence strong {
   font-size: 12px;
@@ -833,7 +833,7 @@
 .preview-market-row span {
   display: block;
   font-size: 11px;
-  color: #7b6987;
+  color: #685670;
   margin-top: 6px;
 }
 .preview-market-row svg {
@@ -854,7 +854,7 @@
   gap: 13px;
   align-items: start;
   margin-top: 28px;
-  color: #7b6987;
+  color: #685670;
   font-size: 12px;
   line-height: 1.8;
 }
