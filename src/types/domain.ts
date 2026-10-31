@@ -150,6 +150,40 @@ export interface AthleteHomeData {
   daysSinceLastWorkout: number | null;
 }
 
+export interface CoachAthleteSummary {
+  athlete: { _id: string; name: string; email: string; profile: UserProfile };
+  lastWorkoutDate: string | null;
+  sessionsThisWeek: number;
+  skippedCount: number;
+  hasPainFlag: boolean;
+  neglectedMuscleGroups: NeglectedMuscleGroup[];
+  coachAthleteId: string;
+  linkStatus: string;
+}
+
+export interface InvitedAthlete {
+  _id: string;
+  athleteId: { _id: string; name: string; email: string } | null;
+  status: string;
+}
+
+export interface WorkoutTemplateItem {
+  exerciseId: ExerciseRef | string;
+  sets: number;
+  reps: number;
+  targetWeightKg: number | null;
+  restSec: number;
+  notes: string;
+}
+
+export interface WorkoutTemplate {
+  _id: string;
+  coachId: string;
+  title: string;
+  items: WorkoutTemplateItem[];
+  createdAt: string;
+}
+
 export interface Comment {
   _id: string;
   workoutId: string | null;

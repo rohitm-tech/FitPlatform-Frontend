@@ -1,5 +1,6 @@
+import {useMuscles} from '../../queries/useMuscles';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
-import { setCameraPreset, setBodyGender } from '../../store/slices/explorerSlice';
+import { selectMuscle, clearSelectedMuscle, setCameraPreset, setLayer } from '../../store/slices/explorerSlice';
 import type { CameraPreset } from '../../store/slices/explorerSlice';
 
 const PRESETS: { value: CameraPreset; label: string }[] = [
@@ -10,11 +11,14 @@ const PRESETS: { value: CameraPreset; label: string }[] = [
 
 export function MuscleExplorerControls() {
   const dispatch = useAppDispatch();
+  const {data:muscles}=useMuscles();
+  const selected=useAppSelector(s=>s.explorer.selectedMuscleKey);
   const cameraPreset = useAppSelector((state) => state.explorer.cameraPreset);
-  const bodyGender = useAppSelector((state) => state.explorer.bodyGender);
+  const layer = useAppSelector((state) => state.explorer.layer);
 
   return (
-    <div className="flex items-center justify-between gap-3 p-3">
+    <div className="flex flex-wrap items-center justify-between gap-3 p-3">
+      <label className="flex items-center gap-2 text-xs">Muscle<select aria-label="Select muscle" className="fp-input !w-auto max-w-48" value={selected||''} onChange={e=>e.target.value?dispatch(selectMuscle(e.target.value)):dispatch(clearSelectedMuscle())}><option value="">Choose a muscle</option>{muscles?.map(m=><option key={m.key} value={m.key}>{m.displayName}</option>)}</select></label>
       <div className="flex gap-1 rounded-lg border p-1" style={{ borderColor: 'var(--fp-border)' }}>
         {PRESETS.map((preset) => (
           <button
@@ -30,16 +34,16 @@ export function MuscleExplorerControls() {
         ))}
       </div>
       <div className="flex gap-1 rounded-lg border p-1" style={{ borderColor: 'var(--fp-border)' }}>
-        {(['male', 'female'] as const).map((gender) => (
+        {(['muscles', 'skin'] as const).map((view) => (
           <button
-            key={gender}
+            key={view}
             className="rounded-md px-3 py-1 text-xs font-medium capitalize"
             style={{
-              background: bodyGender === gender ? 'var(--fp-surface-alt)' : 'transparent',
+              background: layer === view ? 'var(--fp-surface-alt)' : 'transparent',
             }}
-            onClick={() => dispatch(setBodyGender(gender))}
+            aria-pressed={layer===view} onClick={() => dispatch(setLayer(view))}
           >
-            {gender}
+            {view}
           </button>
         ))}
       </div>

@@ -5,13 +5,15 @@ import { useCameraPresets } from './hooks/useCameraPresets';
 
 // Orbit controls + one-shot preset camera moves. Zoom/pan stay put after the
 // user adjusts them — presets only re-aim when Front/Back/Side changes.
-export function CameraRig() {
+export function CameraRig({autoRotate=false}:{autoRotate?:boolean}) {
   const controlsRef = useRef<OrbitControlsImpl | null>(null);
   useCameraPresets(controlsRef);
 
   return (
     <OrbitControls
       ref={controlsRef}
+      autoRotate={autoRotate}
+      autoRotateSpeed={.8}
       makeDefault
       enableZoom
       enablePan

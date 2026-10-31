@@ -58,6 +58,18 @@ export const useUpdateWorkoutStatus = (athleteId: string | undefined) => {
   });
 };
 
+export const useRescheduleWorkout = (athleteId: string | undefined) => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ workoutId, date }: { workoutId: string; date: string }) =>
+      athleteApi.updateWorkout(athleteId as string, workoutId, { date }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['athlete-workouts', athleteId] });
+      queryClient.invalidateQueries({ queryKey: ['athlete-home', athleteId] });
+    },
+  });
+};
+
 export const useCheckIn = (athleteId: string | undefined) =>
   useMutation({ mutationFn: () => athleteApi.checkIn(athleteId as string) });
 

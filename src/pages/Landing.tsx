@@ -1,27 +1,5 @@
+import {Suspense,lazy} from 'react';
 import { Link } from 'react-router-dom';
-
-export default function Landing() {
-  return (
-    <div className="mx-auto flex max-w-3xl flex-col items-center gap-6 px-4 py-24 text-center">
-      <h1 className="font-display text-4xl font-semibold sm:text-5xl">
-        Train. Coach. Run your gym.
-      </h1>
-      <p className="max-w-xl" style={{ color: 'var(--fp-text-muted)' }}>
-        FitPlatform brings athletes, coaches, and gym owners together — with a 3D muscle
-        explorer, AI-assisted plans, and a kiosk for the front desk.
-      </p>
-      <div className="flex gap-3">
-        <Link to="/auth/sign-up" className="rounded-lg px-5 py-2.5 text-sm font-medium" style={{ background: 'var(--fp-accent-rgb)' }}>
-          Get started
-        </Link>
-        <Link
-          to="/auth/sign-in"
-          className="rounded-lg border px-5 py-2.5 text-sm font-medium"
-          style={{ borderColor: 'var(--fp-border)' }}
-        >
-          Sign in
-        </Link>
-      </div>
-    </div>
-  );
-}
+import { ArrowUpRight } from 'lucide-react';
+const BodyCanvas=lazy(()=>import('../3d/BodyExplorerCanvas'));
+export default function Landing(){return <div className="mx-auto max-w-6xl px-5 pb-12"><section className="grid items-center gap-12 py-12 lg:grid-cols-[1.2fr_1fr] lg:py-20"><div><h1 className="font-display text-5xl font-semibold leading-tight sm:text-6xl">Train. Coach.<br/><span className="text-emerald-300">Run your gym.</span></h1><p className="mt-6 max-w-lg text-base leading-relaxed text-slate-400">One place for the work you put in. Understand your muscles, build your training, and keep your whole team moving forward.</p><div className="mt-8 flex flex-wrap gap-3"><Link to="/auth/sign-up" className="inline-flex items-center gap-4 rounded-lg bg-emerald-300 px-6 py-3 text-sm font-semibold text-emerald-950">Start your journey <ArrowUpRight size={18}/></Link><Link to="/auth/sign-in" className="rounded-lg border px-6 py-3 text-sm">Explore demo accounts</Link></div><p className="mt-5 text-xs text-slate-400">Athlete, coach, gym owner or admin. A workspace for every role.</p></div><div className="overflow-hidden rounded-xl border" style={{borderColor:'var(--fp-border)'}}><div className="h-[380px] sm:h-[450px]"><Suspense fallback={<div className="flex h-full items-center justify-center text-sm text-slate-400">Loading muscle explorer…</div>}><BodyCanvas/></Suspense></div><div className="flex items-center justify-between gap-4 bg-[#141c25] px-5 py-4"><div><h2 className="text-sm font-semibold">Explore how you move</h2><p className="mt-1 text-xs text-slate-400">Drag to rotate · scroll to zoom</p></div><Link to="/auth/sign-in" aria-label="Sign in to explore muscles"><ArrowUpRight size={20}/></Link></div></div></section><section className="grid gap-8 border-t pt-8 md:grid-cols-3" style={{borderColor:'var(--fp-border)'}}>{[['For athletes','Turn effort into progress.','Log sets, follow your calendar and see which muscles need attention.'],['For coaches','Give every athlete a plan.','Build workouts, assign sessions and keep the conversation going.'],['For gym owners','Keep your gym connected.','Track attendance, welcome members and pair a front-desk kiosk.']].map(([role,title,body])=><div key={role}><h2 className="text-sm font-semibold text-emerald-300">{role}</h2><h3 className="mt-3 text-lg font-semibold">{title}</h3><p className="mt-2 text-sm leading-relaxed text-slate-400">{body}</p></div>)}</section></div>}

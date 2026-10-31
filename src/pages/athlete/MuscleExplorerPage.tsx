@@ -16,16 +16,16 @@ function CanvasLoader() {
 
 export default function MuscleExplorerPage() {
   return (
-    <div className="mx-auto flex h-[calc(100vh-56px)] max-w-6xl flex-col gap-2 px-2 py-2 sm:flex-row">
-      <div className="flex flex-1 flex-col fp-surface rounded-lg overflow-hidden">
-        <MuscleExplorerControls />
-        <div className="flex-1">
+    <div className="mx-auto flex max-w-6xl flex-col gap-4 px-4 py-6 lg:h-[calc(100dvh-90px)] lg:min-h-[620px] lg:flex-row">
+      <div className="flex min-h-[530px] flex-1 flex-col fp-surface rounded-lg overflow-hidden">
+        <MuscleExplorerControls /><p className="px-4 pb-2 text-xs text-slate-400">Drag to rotate · scroll or pinch to zoom · tap a muscle to select</p>
+        <div className="relative h-[60dvh] min-h-[420px] lg:h-auto lg:flex-1">
           <Suspense fallback={<CanvasLoader />}>
             <BodyExplorerCanvas />
           </Suspense>
         </div>
       </div>
-      <div className="w-full fp-surface rounded-lg sm:w-80">
+      <div className="w-full fp-surface rounded-lg lg:w-80 lg:overflow-y-auto">
         <MusclePanel />
       </div>
     </div>

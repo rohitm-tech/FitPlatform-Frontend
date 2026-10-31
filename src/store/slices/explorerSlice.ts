@@ -8,6 +8,7 @@ interface ExplorerState {
   hoveredMeshName: string | null;
   cameraPreset: CameraPreset;
   bodyGender: BodyGender;
+  layer:'muscles'|'skin';
   /** muscleKey -> 0..1 "how neglected" intensity, for the insights heat map */
   heatData: Record<string, number>;
 }
@@ -17,6 +18,7 @@ const initialState: ExplorerState = {
   hoveredMeshName: null,
   cameraPreset: 'front',
   bodyGender: 'male',
+  layer:'muscles',
   heatData: {},
 };
 
@@ -36,6 +38,7 @@ const explorerSlice = createSlice({
     setCameraPreset: (state, action: { payload: CameraPreset }) => {
       state.cameraPreset = action.payload;
     },
+    setLayer:(state,action:{payload:'muscles'|'skin'})=>{state.layer=action.payload;},
     setBodyGender: (state, action: { payload: BodyGender }) => {
       state.bodyGender = action.payload;
     },
@@ -45,6 +48,6 @@ const explorerSlice = createSlice({
   },
 });
 
-export const { selectMuscle, clearSelectedMuscle, setHoveredMesh, setCameraPreset, setBodyGender, setHeatData } =
+export const { selectMuscle, clearSelectedMuscle, setHoveredMesh, setCameraPreset, setBodyGender, setLayer, setHeatData } =
   explorerSlice.actions;
 export default explorerSlice.reducer;

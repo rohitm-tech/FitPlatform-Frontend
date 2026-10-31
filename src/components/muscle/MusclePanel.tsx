@@ -6,7 +6,7 @@ import { useMuscleDetail } from '../../queries/useMuscles';
 export function MusclePanel() {
   const dispatch = useAppDispatch();
   const selectedMuscleKey = useAppSelector((state) => state.explorer.selectedMuscleKey);
-  const { data, isLoading } = useMuscleDetail(selectedMuscleKey);
+  const { data, isLoading, isError, refetch } = useMuscleDetail(selectedMuscleKey);
 
   if (!selectedMuscleKey) {
     return (
@@ -16,6 +16,7 @@ export function MusclePanel() {
     );
   }
 
+  if(isError)return <div role="alert" className="p-4 text-sm">Could not load this muscle. <button className="underline" onClick={()=>refetch()}>Try again</button></div>;
   if (isLoading || !data) {
     return <div className="p-4 text-sm" style={{ color: 'var(--fp-text-muted)' }}>Loading…</div>;
   }
