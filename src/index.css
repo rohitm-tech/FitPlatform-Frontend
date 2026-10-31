@@ -1,0 +1,50 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --fp-bg: #050505;
+  --fp-surface: #0c0c0c;
+  --fp-surface-alt: #141414;
+  --fp-border: rgba(255, 255, 255, 0.1);
+  --fp-text: #f2f2f2;
+  --fp-text-muted: #8a8a8a;
+  --fp-accent-rgb: 56 189 248;
+}
+
+:root.light {
+  --fp-bg: #ffffff;
+  --fp-surface: #ffffff;
+  --fp-surface-alt: #f4f4f4;
+  --fp-border: rgba(0, 0, 0, 0.1);
+  --fp-text: #111111;
+  --fp-text-muted: #666666;
+  --fp-accent-rgb: 2 132 199;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  background-color: var(--fp-bg);
+  color: var(--fp-text);
+}
+
+.fp-surface {
+  background-color: var(--fp-surface);
+  border: 1px solid var(--fp-border);
+}
+
+.fp-input {
+  @apply w-full rounded-lg border bg-transparent px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-fp-accent;
+  border-color: var(--fp-border);
+  color: var(--fp-text);
+}
+
+.fp-label {
+  @apply mb-1 block text-xs font-medium uppercase tracking-wide;
+  color: var(--fp-text-muted);
+}
