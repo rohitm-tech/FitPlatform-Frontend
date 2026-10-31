@@ -11,6 +11,9 @@ import AthleteHome from './pages/athlete/AthleteHome';
 import MuscleExplorerPage from './pages/athlete/MuscleExplorerPage';
 import ExercisesPage from './pages/athlete/ExercisesPage';
 import ExerciseDetailPage from './pages/athlete/ExerciseDetailPage';
+import WorkoutLoggerPage from './pages/athlete/WorkoutLoggerPage';
+import HistoryPage from './pages/athlete/HistoryPage';
+import InsightsPage from './pages/athlete/InsightsPage';
 import CoachHome from './pages/coach/CoachHome';
 import GymHome from './pages/gym/GymHome';
 import AdminHome from './pages/admin/AdminHome';
@@ -51,6 +54,9 @@ function App() {
         <Route element={<RoleRoute roles={['athlete']} />}>
           <Route path="/athlete" element={<AthleteHome />} />
           <Route path="/athlete/explorer" element={<MuscleExplorerPage />} />
+          <Route path="/athlete/log" element={<WorkoutLoggerPage />} />
+          <Route path="/athlete/history" element={<HistoryPage />} />
+          <Route path="/athlete/insights" element={<InsightsPage />} />
         </Route>
 
         <Route element={<RoleRoute roles={['coach']} />}>

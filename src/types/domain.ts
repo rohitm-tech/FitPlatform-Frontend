@@ -67,3 +67,94 @@ export interface ExerciseSummary {
   equipment: string[];
   type: ExerciseType;
 }
+
+export interface ExerciseRef {
+  _id: string;
+  name: string;
+  slug: string;
+}
+
+export type WorkoutStatus = 'planned' | 'completed' | 'skipped';
+
+export interface WorkoutItem {
+  exerciseId: ExerciseRef | string;
+  sets: number;
+  reps: number;
+  targetWeightKg: number | null;
+  restSec: number;
+  notes: string;
+}
+
+export interface Workout {
+  _id: string;
+  athleteId: string;
+  assignedBy: string;
+  date: string;
+  title: string;
+  items: WorkoutItem[];
+  status: WorkoutStatus;
+}
+
+export interface SetLog {
+  reps: number;
+  weightKg: number;
+}
+
+export interface WorkoutLogItem {
+  exerciseId: ExerciseRef | string;
+  sets: SetLog[];
+}
+
+export interface WorkoutLog {
+  _id: string;
+  athleteId: string;
+  workoutId: string | null;
+  date: string;
+  items: WorkoutLogItem[];
+  durationMin: number;
+  perceivedEffort: number | null;
+  painFlag: boolean;
+  notes: string;
+  source: 'app' | 'kiosk';
+}
+
+export interface NeglectedMuscleGroup {
+  group: MuscleGroup;
+  daysSinceTrained: number | null;
+}
+
+export interface PersonalBest {
+  exercise: { name: string; slug: string };
+  weightKg: number;
+  date: string;
+}
+
+export interface Attendance {
+  sessionsPerWeek: number;
+  longestStreak: number;
+  totalSessions: number;
+}
+
+export interface AthleteInsights {
+  volume7d: Record<string, number>;
+  volume14d: Record<string, number>;
+  neglectedMuscleGroups: NeglectedMuscleGroup[];
+  volumeTrend: Record<string, number>[];
+  personalBests: PersonalBest[];
+  attendance: Attendance;
+}
+
+export interface AthleteHomeData {
+  todaysWorkout: Workout | null;
+  currentStreak: number;
+  daysSinceLastWorkout: number | null;
+}
+
+export interface Comment {
+  _id: string;
+  workoutId: string | null;
+  workoutLogId: string | null;
+  authorId: { _id: string; name: string; roles: Role[] };
+  text: string;
+  createdAt: string;
+}
