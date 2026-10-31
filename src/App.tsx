@@ -8,6 +8,9 @@ import SignIn from './pages/auth/SignIn';
 import SignUp from './pages/auth/SignUp';
 import OnboardingPage from './pages/auth/OnboardingPage';
 import AthleteHome from './pages/athlete/AthleteHome';
+import MuscleExplorerPage from './pages/athlete/MuscleExplorerPage';
+import ExercisesPage from './pages/athlete/ExercisesPage';
+import ExerciseDetailPage from './pages/athlete/ExerciseDetailPage';
 import CoachHome from './pages/coach/CoachHome';
 import GymHome from './pages/gym/GymHome';
 import AdminHome from './pages/admin/AdminHome';
@@ -41,10 +44,13 @@ function App() {
 
         <Route element={<ProtectedRoute />}>
           <Route path="/onboarding" element={<OnboardingPage />} />
+          <Route path="/exercises" element={<ExercisesPage />} />
+          <Route path="/exercises/:slug" element={<ExerciseDetailPage />} />
         </Route>
 
         <Route element={<RoleRoute roles={['athlete']} />}>
           <Route path="/athlete" element={<AthleteHome />} />
+          <Route path="/athlete/explorer" element={<MuscleExplorerPage />} />
         </Route>
 
         <Route element={<RoleRoute roles={['coach']} />}>

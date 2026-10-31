@@ -24,3 +24,46 @@ export interface User {
   onboardingCompleted: boolean;
   createdAt: string;
 }
+
+export type MuscleGroup = 'chest' | 'back' | 'legs' | 'shoulders' | 'arms' | 'core';
+
+export interface Muscle {
+  _id: string;
+  key: string;
+  displayName: string;
+  group: MuscleGroup;
+  description: string;
+  meshNames: string[];
+}
+
+export interface MuscleRef {
+  _id: string;
+  key: string;
+  displayName: string;
+  group: MuscleGroup;
+}
+
+export type ExerciseDifficulty = 'beginner' | 'intermediate' | 'advanced';
+export type ExerciseType = 'strength' | 'cardio' | 'mobility';
+
+export interface Exercise {
+  _id: string;
+  name: string;
+  slug: string;
+  primaryMuscles: MuscleRef[];
+  secondaryMuscles: MuscleRef[];
+  equipment: string[];
+  difficulty: ExerciseDifficulty;
+  instructions: string[];
+  videoUrl: string | null;
+  type: ExerciseType;
+}
+
+export interface ExerciseSummary {
+  _id: string;
+  name: string;
+  slug: string;
+  difficulty: ExerciseDifficulty;
+  equipment: string[];
+  type: ExerciseType;
+}
