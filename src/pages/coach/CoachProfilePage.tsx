@@ -55,21 +55,14 @@ export default function CoachProfilePage() {
         <ArrowLeft size={16} />
         Team workspace
       </Link>
-      <div className="page-greeting">
-        <div>
-          <h1>Your coach profile</h1>
-          <p>
-            Help athletes understand your approach and find your coaching
-            packages.
-          </p>
-        </div>
-        {query.data?.isPublic && (
+      {query.data?.isPublic && (
+        <div className="page-top-actions">
           <Link className="secondary-action" to={`/coaches/${user?._id}`}>
             View public profile
             <ArrowUpRight size={16} />
           </Link>
-        )}
-      </div>
+        </div>
+      )}
       {query.isLoading ? (
         <div className="page-state" role="status">
           Loading your profile…

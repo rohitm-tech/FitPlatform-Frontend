@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
-import { ArrowLeft, Upload, CheckCircle2, Activity } from "lucide-react";
+import { ArrowLeft, Upload, CheckCircle2 } from "lucide-react";
 import toast from "react-hot-toast";
 import { usePerformance } from "../../queries/usePerformance";
 import { api } from "../../services/api";
@@ -110,16 +110,6 @@ export default function RecoveryPage() {
         <ArrowLeft size={15} />
         Back to my day
       </Link>
-      <div className="page-greeting">
-        <div>
-          <h1>Recovery, with context.</h1>
-          <p>Your measurements, their source, and the review they inform.</p>
-        </div>
-        <span className="status-pill">
-          <Activity size={14} />
-          Your recovery records
-        </span>
-      </div>
       {isError && (
         <div className="product-alert">
           Could not load recovery data.{" "}

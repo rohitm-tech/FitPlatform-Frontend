@@ -28,11 +28,7 @@ export default function PaymentsPage() {
         <ArrowLeft size={16} />
         Marketplace requests
       </Link>
-      <div className="page-greeting">
-        <div>
-          <h1>{admin ? "Payment records" : "Your payments"}</h1>
-          <p>Gateway-confirmed transactions and their fulfilment status.</p>
-        </div>
+      <div className="page-top-actions">
         <Link className="secondary-action" to="/settings?section=data">
           Export account records
         </Link>

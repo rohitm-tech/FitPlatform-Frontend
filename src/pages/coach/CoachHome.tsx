@@ -84,26 +84,17 @@ export default function CoachHome() {
       animate={{ opacity: 1, transform: "translateY(0px)" }}
       transition={{ duration: 0.3 }}
     >
-      <div className="page-greeting">
-        <div>
-          <h1>A clear view of your team.</h1>
-          <p>
-            Their recovery, assigned work and the moments that need your
-            judgment.
-          </p>
-        </div>
-        <div className="header-actions">
-          <button
-            className="secondary-action"
-            onClick={() => setShowInvite(!showInvite)}
-          >
-            <Plus size={16} />
-            Invite athlete
-          </button>
-          <Link to="/coach/builder" className="primary-action">
-            Build a session <ArrowUpRight size={15} />
-          </Link>
-        </div>
+      <div className="page-top-actions">
+        <button
+          className="secondary-action"
+          onClick={() => setShowInvite(!showInvite)}
+        >
+          <Plus size={16} />
+          Invite athlete
+        </button>
+        <Link to="/coach/builder" className="primary-action">
+          Build a session <ArrowUpRight size={15} />
+        </Link>
       </div>
       <div className="coach-summary">
         <div>

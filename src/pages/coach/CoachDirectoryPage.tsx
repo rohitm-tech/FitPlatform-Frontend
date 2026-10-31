@@ -24,36 +24,16 @@ export default function CoachDirectoryPage() {
   });
   return (
     <div className="product-page coach-directory-page">
-      <div className="page-greeting">
-        <div>
-          <h1>Find your coach.</h1>
-          <p>
-            A human who understands your goals, your training and your next
-            step.
-          </p>
+      {hasRole("coach") && (
+        <div className="page-top-actions">
+          <Link className="secondary-action" to="/coach?invite=1">
+            Invite an athlete
+          </Link>
+          <Link className="secondary-action" to="/coach/profile">
+            Your public profile
+          </Link>
         </div>
-        {hasRole("coach") && (
-          <div className="header-actions">
-            <Link className="secondary-action" to="/coach?invite=1">
-              Invite an athlete
-            </Link>
-            <Link className="secondary-action" to="/coach/profile">
-              Your public profile
-            </Link>
-          </div>
-        )}
-      </div>
-      <div className="coach-directory-intro">
-        <h2>
-          Better together.
-          <br />
-          Built around you.
-        </h2>
-        <p>
-          Explore a coach’s approach and packages. Send a request, agree the
-          scope, then pay after they accept.
-        </p>
-      </div>
+      )}
       <div className="coach-directory-filters">
         <label>
           <Search size={17} />

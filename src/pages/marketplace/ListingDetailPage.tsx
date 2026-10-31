@@ -65,12 +65,6 @@ export default function ListingDetailPage() {
         </div>
       ) : (
         <>
-          <div className="page-greeting">
-            <div>
-              <h1>{listing.title}</h1>
-              <p>{listing.summary}</p>
-            </div>
-          </div>
           <div className="listing-detail-layout">
             <div>
               <ListingCover listing={listing} />

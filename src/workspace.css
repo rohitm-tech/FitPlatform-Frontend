@@ -9,7 +9,7 @@
 .product-page {
   width: 100%;
   max-width: var(--fp-page-max);
-  padding: 32px var(--fp-page-gutter) 48px;
+  padding: 20px var(--fp-page-gutter) 48px;
   margin-inline: auto;
   min-width: 0;
 }
@@ -27,12 +27,22 @@
   color: var(--fp-text-muted);
 }
 .page-greeting {
-  margin-bottom: 24px;
+  margin-bottom: 16px;
   align-items: center;
 }
 .page-greeting p {
   font-size: 14px;
-  margin-top: 8px;
+  margin-top: 4px;
+}
+/* Pages that dropped the title/subtitle row keep just their action
+   link(s) here, right-aligned, so working navigation isn't lost. */
+.page-top-actions {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
 }
 .product-nav {
   gap: 28px;
@@ -767,7 +777,7 @@ th.num {
     --fp-page-gutter: 20px;
   }
   .product-page {
-    padding: 24px 20px 40px;
+    padding: 16px 20px 40px;
   }
   .product-nav {
     padding: 12px 20px;
@@ -805,7 +815,7 @@ th.num {
     padding: 20px;
   }
   .page-greeting {
-    margin-bottom: 24px;
+    margin-bottom: 16px;
     flex-wrap: wrap;
   }
   .field-row {

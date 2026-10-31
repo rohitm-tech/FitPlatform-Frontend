@@ -54,11 +54,6 @@ export default function AthleteHome() {
             new Date(w.date) >= new Date(new Date().setHours(0, 0, 0, 0)),
         );
   const sleep = latest?.sleepMinutes;
-  const date = new Date().toLocaleDateString(undefined, {
-    weekday: "long",
-    day: "numeric",
-    month: "long",
-  });
   return (
     <motion.div
       className="product-page"
@@ -66,16 +61,6 @@ export default function AthleteHome() {
       animate={{ opacity: 1, transform: "translateY(0px)" }}
       transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
     >
-      <div className="page-greeting">
-        <div>
-          <h1>A good day starts with you.</h1>
-          <p>
-            {user?.name.split(" ")[0]}, your training and recovery, connected
-            from morning to night.
-          </p>
-        </div>
-        <div className="page-date">{date}</div>
-      </div>
       {isError && (
         <div className="product-alert">
           Your performance data could not be loaded.{" "}

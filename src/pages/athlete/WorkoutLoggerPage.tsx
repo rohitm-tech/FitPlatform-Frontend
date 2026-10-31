@@ -132,15 +132,6 @@ export default function WorkoutLoggerPage() {
         <ArrowLeft size={16} />
         Training calendar
       </Link>
-      <div className="page-greeting">
-        <div>
-          <h1>{assigned?.title || "Log a workout"}</h1>
-          <p>
-            Record what you actually performed. Your coach can review the
-            evidence.
-          </p>
-        </div>
-      </div>
       <form onSubmit={submit}>
         {error && (
           <div

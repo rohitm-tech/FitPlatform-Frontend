@@ -30,21 +30,14 @@ export default function ExerciseDetailPage() {
         </div>
       ) : (
         <>
-          <div className="page-greeting">
-            <div>
-              <h1>{exercise.name}</h1>
-              <p>
-                {exercise.type} · {exercise.difficulty} ·{" "}
-                {exercise.equipment.join(", ") || "No equipment"}
-              </p>
-            </div>
-            {hasRole("athlete") && (
+          {hasRole("athlete") && (
+            <div className="page-top-actions">
               <Link className="secondary-action" to="/athlete/explorer">
                 Explore muscles
                 <ArrowUpRight size={16} />
               </Link>
-            )}
-          </div>
+            </div>
+          )}
           <div className="two-column-page">
             <section className="page-section">
               <h2>How to perform it</h2>

@@ -177,13 +177,11 @@ export default function KioskHome() {
       <h1 className="mt-3 font-display text-4xl font-semibold">
         {session ? `Welcome, ${session.athlete?.name}` : "Check in to train"}
       </h1>
-      {paired && (
-        <div className="mt-6 h-64 w-full max-w-sm overflow-hidden rounded-xl">
-          <Suspense fallback={<p>Loading muscle explorer…</p>}>
-            <BodyCanvas autoRotate={!session} />
-          </Suspense>
-        </div>
-      )}
+      <div className="mt-6 h-64 w-full max-w-sm overflow-hidden rounded-xl">
+        <Suspense fallback={<p>Loading muscle explorer…</p>}>
+          <BodyCanvas autoRotate={!session} />
+        </Suspense>
+      </div>
       {session?.workout ? (
         <section className="mt-8 w-full max-w-xl rounded-2xl bg-white/10 p-6">
           <h2 className="mt-2 text-2xl">{session.workout.title}</h2>

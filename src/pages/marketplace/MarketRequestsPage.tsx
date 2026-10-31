@@ -89,20 +89,14 @@ export default function MarketRequestsPage() {
         <ArrowLeft size={16} />
         Marketplace
       </Link>
-      <div className="page-greeting">
-        <div>
-          <h1>
-            {provider ? "Provider enquiries" : "Your marketplace requests"}
-          </h1>
-          <p>Follow the conversation from interest to a confirmed next step.</p>
-        </div>
-        {canProvide && (
+      {canProvide && (
+        <div className="page-top-actions">
           <Link className="secondary-action" to="/marketplace/manage">
             Manage listings
             <ArrowUpRight size={16} />
           </Link>
-        )}
-      </div>
+        </div>
+      )}
       {canProvide && (
         <nav className="settings-tabs" aria-label="Marketplace request views">
           <button

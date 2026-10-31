@@ -112,12 +112,6 @@ export default function SettingsPage() {
   ];
   return (
     <div className="product-page settings-page">
-      <div className="page-greeting">
-        <div>
-          <h1>Your account</h1>
-          <p>Manage your profile, privacy and the people you train with.</p>
-        </div>
-      </div>
       <nav className="settings-tabs" aria-label="Account settings">
         {tabs.map(([id, label]) => (
           <button

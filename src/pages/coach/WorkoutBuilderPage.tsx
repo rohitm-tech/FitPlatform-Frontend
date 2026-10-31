@@ -103,15 +103,6 @@ export default function WorkoutBuilderPage() {
   };
   return (
     <div className="product-page builder-page">
-      <div className="page-greeting">
-        <div>
-          <h1>Workout builder</h1>
-          <p>
-            Create a reusable session, then assign it with a clear target and
-            date.
-          </p>
-        </div>
-      </div>
       <div className="two-column-page">
         <form className="page-section" onSubmit={saveTemplate}>
           <h2>Create a template</h2>

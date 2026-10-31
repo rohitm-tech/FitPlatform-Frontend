@@ -80,29 +80,20 @@ export default function MarketplacePage() {
   );
   return (
     <div className="product-page marketplace-page">
-      <div className="page-greeting">
-        <div>
-          <h1>Find your next step.</h1>
-          <p>
-            Coach-made plans, personal support and the essentials around your
-            training.
-          </p>
-        </div>
-        <div className="header-actions">
-          {isAuthenticated && (
-            <Link className="secondary-action" to="/marketplace/requests">
-              My requests
-            </Link>
-          )}
-          {provider && (
-            <Link className="secondary-action" to="/marketplace/manage">
-              {user?.roles.includes("admin")
-                ? "Review listings"
-                : "Provider workspace"}
-              <ArrowUpRight size={16} />
-            </Link>
-          )}
-        </div>
+      <div className="page-top-actions">
+        {isAuthenticated && (
+          <Link className="secondary-action" to="/marketplace/requests">
+            My requests
+          </Link>
+        )}
+        {provider && (
+          <Link className="secondary-action" to="/marketplace/manage">
+            {user?.roles.includes("admin")
+              ? "Review listings"
+              : "Provider workspace"}
+            <ArrowUpRight size={16} />
+          </Link>
+        )}
       </div>
       <div className="marketplace-intro">
         <div>

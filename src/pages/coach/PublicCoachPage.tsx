@@ -105,12 +105,6 @@ export default function PublicCoachPage() {
             </section>
           </div>
           <section className="mt-8">
-            <div className="page-greeting">
-              <div>
-                <h2 className="text-xl font-bold">Plans & coaching packages</h2>
-                <p>Read the scope, send a request, and agree your next step.</p>
-              </div>
-            </div>
             {profile.packages.length ? (
               <div className="marketplace-grid">
                 {profile.packages.map((listing: any) => (

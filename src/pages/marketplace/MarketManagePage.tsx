@@ -149,15 +149,7 @@ export default function MarketManagePage() {
         <ArrowLeft size={16} />
         Marketplace
       </Link>
-      <div className="page-greeting">
-        <div>
-          <h1>{admin ? "Marketplace review" : "Your provider workspace"}</h1>
-          <p>
-            {admin
-              ? "Review content and seller documents before publication."
-              : "Create an offering, set its scope and submit it for publication."}
-          </p>
-        </div>
+      <div className="page-top-actions">
         <Link
           className="secondary-action"
           to="/marketplace/requests?view=provider"

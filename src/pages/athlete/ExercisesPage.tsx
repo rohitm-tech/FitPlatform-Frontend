@@ -48,20 +48,14 @@ export default function ExercisesPage() {
   };
   return (
     <div className="product-page">
-      <div className="page-greeting">
-        <div>
-          <h1>Exercise library</h1>
-          <p>
-            Find a movement, understand its muscles and learn the technique.
-          </p>
-        </div>
-        {hasRole("athlete") && (
+      {hasRole("athlete") && (
+        <div className="page-top-actions">
           <Link className="secondary-action" to="/athlete/explorer">
             Muscle explorer
             <ArrowUpRight size={16} />
           </Link>
-        )}
-      </div>
+        </div>
+      )}
       <div className="library-filters">
         <label>
           Search exercises
