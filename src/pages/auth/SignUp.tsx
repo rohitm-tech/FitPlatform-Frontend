@@ -1,108 +1,13 @@
-import { useState } from "react";
-import type { FormEvent } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import toast from "react-hot-toast";
-import { useAppDispatch } from "../../store/hooks";
-import { registerUser } from "../../store/slices/authSlice";
-import type { Role } from "../../types/domain";
-
-export default function SignUp() {
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const roles: Role[] = ["athlete"];
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const dispatch = useAppDispatch();
-  const navigate = useNavigate();
-
-  const handleSubmit = async (event: FormEvent) => {
-    event.preventDefault();
-    if (roles.length === 0) {
-      toast.error("Pick at least one role");
-      return;
-    }
-    setIsSubmitting(true);
-    try {
-      const user = await dispatch(
-        registerUser({ name, email, password, roles }),
-      ).unwrap();
-      navigate(user.onboardingCompleted ? "/" : "/onboarding", {
-        replace: true,
-      });
-    } catch (error) {
-      toast.error("Could not create account — the email may already be in use");
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  return (
-    <div className="mx-auto flex max-w-sm flex-col gap-6 px-4 py-16">
-      <h1 className="font-display text-2xl font-semibold">
-        Create your account
-      </h1>
-      <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
-        <div>
-          <label className="fp-label" htmlFor="name">
-            Name
-          </label>
-          <input
-            id="name"
-            required
-            className="fp-input"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-          />
-        </div>
-        <div>
-          <label className="fp-label" htmlFor="email">
-            Email
-          </label>
-          <input
-            id="email"
-            type="email"
-            required
-            className="fp-input"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-          />
-        </div>
-        <div>
-          <label className="fp-label" htmlFor="password">
-            Password
-          </label>
-          <input
-            id="password"
-            type="password"
-            minLength={6}
-            required
-            className="fp-input"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-          />
-        </div>
-        <p
-          className="rounded-lg bg-white/5 p-4 text-sm"
-          style={{ color: "var(--fp-text-muted)" }}
-        >
-          Your account starts as an athlete. Coach and gym-owner access is
-          granted by a platform admin, so your training stays in trusted hands.
-        </p>
-        <button
-          type="submit"
-          disabled={isSubmitting}
-          className="rounded-lg border px-4 py-2 text-sm font-medium disabled:opacity-50"
-          style={{ borderColor: "var(--fp-border)" }}
-        >
-          {isSubmitting ? "Creating account…" : "Sign up"}
-        </button>
-      </form>
-      <p className="text-sm" style={{ color: "var(--fp-text-muted)" }}>
-        Already have an account?{" "}
-        <Link to="/auth/sign-in" className="underline">
-          Sign in
-        </Link>
-      </p>
-    </div>
-  );
+import {useEffect,useRef,useState} from 'react';
+import type {FormEvent} from 'react';
+import {Link,useNavigate} from 'react-router-dom';
+import {ArrowRight,ShieldCheck} from 'lucide-react';
+import {useAppDispatch} from '../../store/hooks';
+import {registerUser} from '../../store/slices/authSlice';
+import {AuthFrame,PasswordField} from '../../components/common/AuthFrame';
+export default function SignUp(){
+ const [name,setName]=useState('');const [email,setEmail]=useState('');const [password,setPassword]=useState('');const [busy,setBusy]=useState(false);const [error,setError]=useState('');const [field,setField]=useState('');const errorRef=useRef<HTMLDivElement>(null);const dispatch=useAppDispatch();const navigate=useNavigate();
+ useEffect(()=>{if(error)errorRef.current?.focus()},[error]);
+ const submit=async(e:FormEvent)=>{e.preventDefault();setError('');if(!name.trim()){setField('name');setError('Enter the name you would like to use.');return;}setBusy(true);try{await dispatch(registerUser({name:name.trim(),email:email.trim(),password,roles:['athlete']})).unwrap();navigate('/onboarding',{replace:true})}catch(e:any){const duplicate=e.status===409||e.message?.includes('409');setField(duplicate?'email':'');setError(duplicate?'An account already uses this email. Sign in or use a different address.':'Your account could not be created. Check your connection and try again.')}finally{setBusy(false)}};
+ return <AuthFrame signup><div className="auth-form-content"><div className="auth-heading"><h1>Start with you.</h1><p>Create your account. We’ll build your training profile next.</p></div><form className="auth-form" onSubmit={submit} aria-busy={busy}>{error&&<div className="auth-error" ref={errorRef} tabIndex={-1} role="alert"><strong>One thing to check.</strong><p id="signup-error">{error}</p>{field&&<a href={`#signup-${field}`}>Go to {field}</a>}</div>}<div className="auth-field"><label htmlFor="signup-name">Your name</label><input id="signup-name" name="name" className="auth-input" autoComplete="name" maxLength={100} required value={name} onChange={e=>setName(e.target.value)} placeholder="What should we call you?" aria-invalid={field==='name'||undefined} aria-describedby={field==='name'?'signup-error':undefined}/></div><div className="auth-field"><label htmlFor="signup-email">Email address</label><input id="signup-email" name="email" className="auth-input" type="email" autoComplete="email" inputMode="email" required value={email} onChange={e=>setEmail(e.target.value)} placeholder="you@example.com" aria-invalid={field==='email'||undefined} aria-describedby={field==='email'?'signup-error':undefined}/></div><div className="auth-field"><label htmlFor="signup-password">Create a password</label><PasswordField id="signup-password" value={password} onChange={setPassword} minLength={8} newPassword describedBy="password-guidance"/><p id="password-guidance" className="auth-field-hint">At least 8 characters. Make it something only you know.</p></div><div className="auth-access-note"><ShieldCheck size={19}/><p>You’ll start as an athlete.<span>Coach and gym-owner access is approved by an admin. Invited members can join their gym after sign-up.</span></p></div><button className="auth-submit" disabled={busy} type="submit">{busy?'Creating your account…':'Create account'}<ArrowRight size={18}/></button></form><p className="auth-switch">Already part of the team? <Link to="/auth/sign-in">Sign in</Link></p></div></AuthFrame>;
 }

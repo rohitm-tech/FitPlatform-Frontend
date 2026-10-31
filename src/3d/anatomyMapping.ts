@@ -1,16 +1,25 @@
 /** Ordered pattern list — heads/parts before group fallbacks. */
 export const ANATOMY_MESH_PATTERNS: { slug: string; test: RegExp }[] = [
   // Chest
-  { slug: 'upper-chest', test: /clavicular.*(pectoralis|head of pectoralis)|clavicular head of pectoralis/i },
+  {
+    slug: 'upper-chest',
+    test: /clavicular.*(pectoralis|head of pectoralis)|clavicular head of pectoralis/i,
+  },
   { slug: 'lower-chest', test: /abdominal part of pectoralis/i },
-  { slug: 'middle-chest', test: /sternocostal.*(pectoralis|head of pectoralis)|sternocostal head of pectoralis/i },
+  {
+    slug: 'middle-chest',
+    test: /sternocostal.*(pectoralis|head of pectoralis)|sternocostal head of pectoralis/i,
+  },
   { slug: 'inner-chest', test: /pectoralis minor/i },
   { slug: 'middle-chest', test: /pectoralis major/i },
 
   // Delts (parts before aggregate)
   { slug: 'front-delts', test: /clavicular part of deltoid/i },
   { slug: 'side-delts', test: /acromial part of deltoid/i },
-  { slug: 'rear-delts', test: /spinal part of deltoid|scapular spinal part of deltoid/i },
+  {
+    slug: 'rear-delts',
+    test: /spinal part of deltoid|scapular spinal part of deltoid/i,
+  },
   { slug: 'side-delts', test: /^deltoid$|deltoid muscle/i },
 
   // Biceps brachii (exclude femoris)
@@ -27,7 +36,10 @@ export const ANATOMY_MESH_PATTERNS: { slug: string; test: RegExp }[] = [
 
   // Forearms
   { slug: 'brachioradialis', test: /brachioradialis/i },
-  { slug: 'forearms', test: /forearm|flexor carpi|extensor carpi|pronator|supinator|anconeus/i },
+  {
+    slug: 'forearms',
+    test: /forearm|flexor carpi|extensor carpi|pronator|supinator|anconeus/i,
+  },
 
   // Traps
   { slug: 'upper-traps', test: /descending part of trapezius/i },
@@ -37,7 +49,10 @@ export const ANATOMY_MESH_PATTERNS: { slug: string; test: RegExp }[] = [
 
   { slug: 'rhomboids', test: /rhomboid/i },
   { slug: 'lats', test: /latissimus/i },
-  { slug: 'upper-back', test: /infraspinatus|teres major|teres minor|serratus posterior/i },
+  {
+    slug: 'upper-back',
+    test: /infraspinatus|teres major|teres minor|serratus posterior/i,
+  },
 
   // Quads
   { slug: 'rectus-femoris', test: /rectus femoris/i },
@@ -58,8 +73,14 @@ export const ANATOMY_MESH_PATTERNS: { slug: string; test: RegExp }[] = [
   { slug: 'gluteus-medius', test: /gluteus medius/i },
   { slug: 'gluteus-minimus', test: /gluteus minimus/i },
   { slug: 'glutes', test: /gluteal muscles|^gluteus$/i },
-  { slug: 'hip-flexors', test: /iliopsoas|iliacus|psoas major|tensor fasciae latae|tensor fascia lata/i },
-  { slug: 'adductors', test: /adductor (longus|magnus|brevis)|(^pectineus$|pectineus muscle)|(^gracilis$|gracilis muscle)/i },
+  {
+    slug: 'hip-flexors',
+    test: /iliopsoas|iliacus|psoas major|tensor fasciae latae|tensor fascia lata/i,
+  },
+  {
+    slug: 'adductors',
+    test: /adductor (longus|magnus|brevis)|(^pectineus$|pectineus muscle)|(^gracilis$|gracilis muscle)/i,
+  },
 
   // Calves
   { slug: 'medial-gastrocnemius', test: /medial head of gastrocnemius/i },
@@ -69,8 +90,14 @@ export const ANATOMY_MESH_PATTERNS: { slug: string; test: RegExp }[] = [
 
   // Core (avoid eye/foot "oblique" muscles)
   { slug: 'upper-abs', test: /rectus abdominis/i },
-  { slug: 'lower-abs', test: /pyramidalis|transversus abdominis|transverse abdominal/i },
-  { slug: 'obliques', test: /(?:abdominal (?:external|internal) oblique|(?:external|internal) abdominal oblique)/i },
+  {
+    slug: 'lower-abs',
+    test: /pyramidalis|transversus abdominis|transverse abdominal/i,
+  },
+  {
+    slug: 'obliques',
+    test: /(?:abdominal (?:external|internal) oblique|(?:external|internal) abdominal oblique)/i,
+  },
 ];
 
 /**
@@ -80,7 +107,7 @@ export const ANATOMY_MESH_PATTERNS: { slug: string; test: RegExp }[] = [
 export const SLUG_PICK_PRIORITY: Record<string, number> = {
   'upper-abs': 100,
   'lower-abs': 100,
-  'obliques': 95,
+  obliques: 95,
   'upper-chest': 85,
   'middle-chest': 85,
   'lower-chest': 85,
@@ -125,8 +152,36 @@ export function isLikelyMuscleMesh(meshName: string): boolean {
   return resolveAnatomyMeshToSlug(meshName) !== null;
 }
 
-const GROUP_KEYS:Record<string,string>={"long-head-biceps": "biceps", "short-head-biceps": "biceps", "brachialis": "biceps", "long-head-triceps": "triceps", "lateral-head-triceps": "triceps", "medial-head-triceps": "triceps", "brachioradialis": "forearms", "upper-traps": "traps", "middle-traps": "traps", "lower-traps": "traps", "rectus-femoris": "quadriceps", "vastus-lateralis": "quadriceps", "vastus-medialis": "quadriceps", "vastus-intermedius": "quadriceps", "adductors": "quadriceps", "biceps-femoris-long": "hamstrings", "biceps-femoris-short": "hamstrings", "semitendinosus": "hamstrings", "semimembranosus": "hamstrings", "gluteus-maximus": "glutes", "gluteus-medius": "glutes", "gluteus-minimus": "glutes", "hip-flexors": "glutes", "medial-gastrocnemius": "calves", "lateral-gastrocnemius": "calves", "soleus": "calves"};
-export function resolveAnatomyMuscleKey(name:string):string|null {
- const normalized=name.replace(/_/g," ").replace(/\.\d+$/,"");
- const slug=resolveAnatomyMeshToSlug(normalized);return slug?(GROUP_KEYS[slug]||slug):null;
+const GROUP_KEYS: Record<string, string> = {
+  'long-head-biceps': 'biceps',
+  'short-head-biceps': 'biceps',
+  brachialis: 'biceps',
+  'long-head-triceps': 'triceps',
+  'lateral-head-triceps': 'triceps',
+  'medial-head-triceps': 'triceps',
+  brachioradialis: 'forearms',
+  'upper-traps': 'traps',
+  'middle-traps': 'traps',
+  'lower-traps': 'traps',
+  'rectus-femoris': 'quadriceps',
+  'vastus-lateralis': 'quadriceps',
+  'vastus-medialis': 'quadriceps',
+  'vastus-intermedius': 'quadriceps',
+  adductors: 'quadriceps',
+  'biceps-femoris-long': 'hamstrings',
+  'biceps-femoris-short': 'hamstrings',
+  semitendinosus: 'hamstrings',
+  semimembranosus: 'hamstrings',
+  'gluteus-maximus': 'glutes',
+  'gluteus-medius': 'glutes',
+  'gluteus-minimus': 'glutes',
+  'hip-flexors': 'glutes',
+  'medial-gastrocnemius': 'calves',
+  'lateral-gastrocnemius': 'calves',
+  soleus: 'calves',
+};
+export function resolveAnatomyMuscleKey(name: string): string | null {
+  const normalized = name.replace(/_/g, ' ').replace(/\.\d+$/, '');
+  const slug = resolveAnatomyMeshToSlug(normalized);
+  return slug ? GROUP_KEYS[slug] || slug : null;
 }

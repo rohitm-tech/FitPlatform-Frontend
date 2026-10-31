@@ -24,17 +24,15 @@ export const bootstrapAuth = createAsyncThunk('auth/bootstrap', async () => {
 
 export const loginUser = createAsyncThunk(
   'auth/login',
-  async (payload: { email: string; password: string }) => {
-    const res = await authApi.login(payload);
-    return res.data.data.user;
+  async (payload: { email: string; password: string },{rejectWithValue}) => {
+    try{const res = await authApi.login(payload);return res.data.data.user;}catch(error:any){return rejectWithValue({status:error.response?.status,code:error.code,message:error.response?.data?.message||error.message});}
   }
 );
 
 export const registerUser = createAsyncThunk(
   'auth/register',
-  async (payload: { name: string; email: string; password: string; roles?: User['roles'] }) => {
-    const res = await authApi.register(payload);
-    return res.data.data.user;
+  async (payload: { name: string; email: string; password: string; roles?: User['roles'] },{rejectWithValue}) => {
+    try{const res = await authApi.register(payload);return res.data.data.user;}catch(error:any){return rejectWithValue({status:error.response?.status,code:error.code,message:error.response?.data?.message||error.message});}
   }
 );
 
