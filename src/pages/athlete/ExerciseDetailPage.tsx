@@ -1,9 +1,7 @@
-import { useAuth } from "../../hooks/useAuth";
 import { useParams, Link } from "react-router-dom";
 import { ArrowLeft, ArrowUpRight } from "lucide-react";
 import { useExerciseDetail } from "../../queries/useExercises";
 export default function ExerciseDetailPage() {
-  const { hasRole } = useAuth();
   const { slug } = useParams();
   const query = useExerciseDetail(slug);
   const exercise = query.data;
@@ -30,14 +28,6 @@ export default function ExerciseDetailPage() {
         </div>
       ) : (
         <>
-          {hasRole("athlete") && (
-            <div className="page-top-actions">
-              <Link className="secondary-action" to="/athlete/explorer">
-                Explore muscles
-                <ArrowUpRight size={16} />
-              </Link>
-            </div>
-          )}
           <div className="two-column-page">
             <section className="page-section">
               <h2>How to perform it</h2>

@@ -14,7 +14,13 @@ const PRESETS: { value: CameraPreset; label: string }[] = [
   { value: "side", label: "Side" },
 ];
 
-export function MuscleExplorerControls() {
+export function MuscleExplorerControls({
+  libraryOpen,
+  onToggleLibrary,
+}: {
+  libraryOpen: boolean;
+  onToggleLibrary: () => void;
+}) {
   const dispatch = useAppDispatch();
   const { data: muscles } = useMuscles();
   const selected = useAppSelector((s) => s.explorer.selectedMuscleKey);
@@ -22,7 +28,7 @@ export function MuscleExplorerControls() {
   const layer = useAppSelector((state) => state.explorer.layer);
 
   return (
-    <div className="flex flex-wrap items-center justify-between gap-3 p-3">
+    <div className="explorer-controls">
       <label className="flex items-center gap-2 text-xs">
         Muscle
         <select
@@ -83,6 +89,14 @@ export function MuscleExplorerControls() {
           </button>
         ))}
       </div>
+      <button
+        type="button"
+        className="explorer-library-toggle"
+        aria-pressed={libraryOpen}
+        onClick={onToggleLibrary}
+      >
+        Explore exercises
+      </button>
     </div>
   );
 }

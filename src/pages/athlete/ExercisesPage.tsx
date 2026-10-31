@@ -1,11 +1,9 @@
-import { useAuth } from "../../hooks/useAuth";
 import { useEffect, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { ArrowUpRight, Search } from "lucide-react";
 import { useExercises } from "../../queries/useExercises";
 import { useMuscles } from "../../queries/useMuscles";
 export default function ExercisesPage() {
-  const { hasRole } = useAuth();
   const [params, setParams] = useSearchParams();
   const [search, setSearch] = useState(params.get("q") || "");
   const muscle = params.get("muscle") || "";
@@ -48,14 +46,6 @@ export default function ExercisesPage() {
   };
   return (
     <div className="product-page">
-      {hasRole("athlete") && (
-        <div className="page-top-actions">
-          <Link className="secondary-action" to="/athlete/explorer">
-            Muscle explorer
-            <ArrowUpRight size={16} />
-          </Link>
-        </div>
-      )}
       <div className="library-filters">
         <label>
           Search exercises

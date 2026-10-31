@@ -3,13 +3,26 @@ export type Role = 'athlete' | 'coach' | 'gym_owner' | 'admin';
 export interface UserProfile {
   gender?: 'male' | 'female' | 'other';
   dateOfBirth?: string;
-  heightCm?: number;
-  weightKg?: number;
+  heightCm?: number | null;
+  weightKg?: number | null;
   experienceLevel?: 'beginner' | 'intermediate' | 'advanced';
   goal?: 'muscle_gain' | 'fat_loss' | 'strength' | 'general_fitness' | 'race';
   trainingDaysPerWeek?: number;
   equipmentAccess?: string[];
   injuries?: string;
+  location?: {
+    city?: string;
+    area?: string;
+    latitude?: number | null;
+    longitude?: number | null;
+    source?: string;
+  };
+  sports?: string[];
+  about?: string;
+  trainingSetting?: 'in_person' | 'online' | 'either';
+  budgetMonthlyInr?: number | null;
+  languages?: string[];
+  availability?: string;
   bodyModelPreference?: 'male' | 'female';
   shareDetailedLogs?: boolean;
 }

@@ -4,11 +4,11 @@
 export function LogoMark({ size = 22 }: { size?: number }) {
   return (
     <svg width={size} height={size} viewBox="0 0 512 512" aria-hidden="true" focusable="false">
-      <rect width="512" height="512" rx="112" fill="#77518b" />
+      <rect width="512" height="512" rx="112" fill="var(--fp-accent)" />
       <path
         d="M80 256H170L200 170L230 340L260 256H432"
         fill="none"
-        stroke="#ffffff"
+        stroke="var(--fp-on-accent)"
         strokeWidth="34"
         strokeLinecap="round"
         strokeLinejoin="round"

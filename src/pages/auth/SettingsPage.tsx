@@ -3,10 +3,12 @@ import type { FormEvent } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Download, ShieldCheck, Check } from "lucide-react";
+import { useTheme } from "../../hooks/useTheme";
 import { api } from "../../services/api";
 import { useAuth } from "../../hooks/useAuth";
 import { useAppDispatch } from "../../store/hooks";
 import { bootstrapAuth } from "../../store/slices/authSlice";
+import PlanPanel from "./PlanPanel";
 export default function SettingsPage() {
   const { user } = useAuth();
   const athlete = user?.roles.includes("athlete");
@@ -25,6 +27,7 @@ export default function SettingsPage() {
   const [exporting, setExporting] = useState("");
   const [inviteBusy, setInviteBusy] = useState("");
   const errorRef = useRef<HTMLDivElement>(null);
+  const { theme, setTheme } = useTheme();
   const invites = useQuery({
     queryKey: ["account-invites", user?._id],
     queryFn: async () =>
@@ -102,6 +105,7 @@ export default function SettingsPage() {
     ...(athlete
       ? [
           ["privacy", "Training & privacy"],
+          ["plan", "Plan"],
           [
             "invitations",
             `Invitations${invites.data?.length ? ` (${invites.data.length})` : ""}`,
@@ -136,6 +140,35 @@ export default function SettingsPage() {
         >
           {error}
         </div>
+      )}
+      {section === "plan" && athlete && <PlanPanel />}
+      {section === "account" && (
+        <section className="settings-row">
+          <div>
+            <h2>Appearance</h2>
+            <p className="settings-description">
+              White workspace, or a black field with white type.
+            </p>
+          </div>
+          <div className="settings-panel">
+            <div className="theme-choice">
+              <button
+                type="button"
+                aria-pressed={theme === "light"}
+                onClick={() => setTheme("light")}
+              >
+                Light
+              </button>
+              <button
+                type="button"
+                aria-pressed={theme === "dark"}
+                onClick={() => setTheme("dark")}
+              >
+                Dark
+              </button>
+            </div>
+          </div>
+        </section>
       )}
       {section === "account" && (
         <section className="settings-row">
@@ -265,7 +298,7 @@ export default function SettingsPage() {
                     <div className="section-row">
                       <div>
                         <strong>{invite.coachId?.name || "A coach"}</strong>
-                        <p>Wants to coach you</p>
+                        <p>{invite.offer || "Wants to coach you"}</p>
                       </div>
                       <div className="flex gap-2">
                         {[true, false].map((accept) => (

@@ -80,21 +80,6 @@ export default function MarketplacePage() {
   );
   return (
     <div className="product-page marketplace-page">
-      <div className="page-top-actions">
-        {isAuthenticated && (
-          <Link className="secondary-action" to="/marketplace/requests">
-            My requests
-          </Link>
-        )}
-        {provider && (
-          <Link className="secondary-action" to="/marketplace/manage">
-            {user?.roles.includes("admin")
-              ? "Review listings"
-              : "Provider workspace"}
-            <ArrowUpRight size={16} />
-          </Link>
-        )}
-      </div>
       <div className="marketplace-intro">
         <div>
           <h2>
@@ -149,6 +134,18 @@ export default function MarketplacePage() {
           />
         </label>
         <div>
+          {isAuthenticated && (
+            <Link className="secondary-action" to="/marketplace/requests">
+              My requests
+            </Link>
+          )}
+          {provider && (
+            <Link className="secondary-action" to="/marketplace/manage">
+              {user?.roles.includes("admin")
+                ? "Review listings"
+                : "Provider workspace"}
+            </Link>
+          )}
           {user && (
             <button
               className={onlySaved ? "selected" : ""}

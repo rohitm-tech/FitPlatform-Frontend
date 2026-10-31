@@ -7,6 +7,7 @@ import {
   Settings,
   LogOut,
   ArrowUpRight,
+  HeartPulse,
 } from "lucide-react";
 import { useAuth, roleHomePath } from "../../hooks/useAuth";
 import { useAppDispatch } from "../../store/hooks";
@@ -14,6 +15,7 @@ import { logoutUser } from "../../store/slices/authSlice";
 import { RoleSwitcher } from "./RoleSwitcher";
 import { NotificationCenter } from "./NotificationCenter";
 import { Logo } from "../common/Logo";
+import { useTheme } from "../../hooks/useTheme";
 import "../../header.css";
 export const Navbar = () => {
   const { isAuthenticated, user, activeRole } = useAuth();
@@ -23,6 +25,7 @@ export const Navbar = () => {
   const [mobile, setMobile] = useState(false);
   const [tools, setTools] = useState(false);
   const [account, setAccount] = useState(false);
+  const { theme, toggle } = useTheme();
   const root = useRef<HTMLElement>(null);
   const menu = useRef<HTMLButtonElement>(null);
   const auth = pathname.startsWith("/auth/");
@@ -65,6 +68,7 @@ export const Navbar = () => {
     activeRole === "coach"
       ? [
           ["/coach", "Team"],
+          ["/coach/explore", "Athletes"],
           ["/coach/builder", "Builder"],
           ["/marketplace", "Marketplace"],
         ]
@@ -79,25 +83,21 @@ export const Navbar = () => {
               ["/marketplace", "Marketplace"],
             ]
           : [
-              ["/athlete", "My day"],
+              ["/athlete", "Dashboard"],
               ["/athlete/history", "Training"],
               ["/athlete/companion", "AI coach"],
-              ["/coaches", "Find a coach"],
+              ["/coaches", "Near you"],
+              ["/athlete/explorer", "Muscle explorer"],
               ["/marketplace", "Marketplace"],
             ];
   const extra =
     activeRole === "athlete"
-      ? [
-          ["/athlete/recovery", "Recovery"],
-          ["/athlete/insights", "Progress"],
-          ["/athlete/explorer", "Muscle explorer"],
-          ["/exercises", "Exercise library"],
-        ]
+      ? []
       : [
           ...(activeRole === "coach"
             ? [["/coach/profile", "Public coach profile"]]
             : []),
-          ["/coaches", "Find a coach"],
+          ["/coaches", "Near you"],
           ["/exercises", "Exercise library"],
           ["/marketplace/manage", "Manage listings"],
           ["/marketplace/requests", "Marketplace requests"],
@@ -135,6 +135,14 @@ export const Navbar = () => {
               {pathname === "/auth/sign-up" ? "Sign in" : "Create account"}
               <ArrowUpRight size={15} />
             </Link>
+            <button
+              type="button"
+              className="theme-toggle"
+              aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+              onClick={toggle}
+            >
+              {theme === "dark" ? "Light" : "Dark"}
+            </button>
           </div>
         ) : (
           <>
@@ -153,51 +161,64 @@ export const Navbar = () => {
                       {label}
                     </NavLink>
                   ))}
-                  <div className="header-disclosure">
-                    <button
-                      className={
-                        extra.some(([to]) => pathname === to) ? "active" : ""
-                      }
-                      aria-expanded={tools}
-                      aria-controls="training-tools"
-                      onClick={() => {
-                        setTools(!tools);
-                        setAccount(false);
-                      }}
-                    >
-                      {activeRole === "athlete" ? "Explore" : "Tools"}
-                      <ChevronDown size={13} />
-                    </button>
-                    {tools && (
-                      <nav
-                        id="training-tools"
-                        className="header-dropdown"
-                        aria-label="More workspace tools"
+                  {extra.length > 0 && (
+                    <div className="header-disclosure">
+                      <button
+                        className={
+                          extra.some(([to]) => pathname === to) ? "active" : ""
+                        }
+                        aria-expanded={tools}
+                        aria-controls="training-tools"
+                        onClick={() => {
+                          setTools(!tools);
+                          setAccount(false);
+                        }}
                       >
-                        {extra.map(([to, label]) => (
-                          <NavLink
-                            key={to}
-                            to={to}
-                            onClick={() => setTools(false)}
-                          >
-                            {label}
-                            <ArrowUpRight size={14} />
-                          </NavLink>
-                        ))}
-                      </nav>
-                    )}
-                  </div>
+                        Tools
+                        <ChevronDown size={13} />
+                      </button>
+                      {tools && (
+                        <nav
+                          id="training-tools"
+                          className="header-dropdown"
+                          aria-label="More workspace tools"
+                        >
+                          {extra.map(([to, label]) => (
+                            <NavLink
+                              key={to}
+                              to={to}
+                              onClick={() => setTools(false)}
+                            >
+                              {label}
+                              <ArrowUpRight
+                                className="dropdown-arrow"
+                                size={14}
+                              />
+                            </NavLink>
+                          ))}
+                        </nav>
+                      )}
+                    </div>
+                  )}
                 </>
               ) : (
                 <>
                   <a href="/#workflow">How it works</a>
                   <a href="/#features">The platform</a>
-                  <NavLink to="/coaches">Find a coach</NavLink>
+                  <NavLink to="/coaches">Near you</NavLink>
                   <NavLink to="/marketplace">Marketplace</NavLink>
                 </>
               )}
             </nav>
             <div className="header-right">
+              <button
+                type="button"
+                className="theme-toggle"
+                aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+                onClick={toggle}
+              >
+                {theme === "dark" ? "Light" : "Dark"}
+              </button>
               {isAuthenticated ? (
                 <>
                   {publicPage && (
@@ -238,6 +259,15 @@ export const Navbar = () => {
                           </small>
                         </div>
                         <RoleSwitcher />
+                        {activeRole === "athlete" && (
+                          <Link
+                            to="/athlete/recovery"
+                            onClick={() => setAccount(false)}
+                          >
+                            <HeartPulse size={16} />
+                            Recovery
+                          </Link>
+                        )}
                         <Link to="/settings" onClick={() => setAccount(false)}>
                           <Settings size={16} />
                           Account & settings
@@ -316,6 +346,12 @@ export const Navbar = () => {
                   {label}
                 </NavLink>
               ))}
+              {activeRole === "athlete" && (
+                <Link to="/athlete/recovery">
+                  <HeartPulse size={17} />
+                  Recovery
+                </Link>
+              )}
               <Link to="/settings">
                 <Settings size={17} />
                 Account & settings
@@ -329,7 +365,7 @@ export const Navbar = () => {
             <>
               <a href="/#workflow">How it works</a>
               <a href="/#features">The platform</a>
-              <Link to="/coaches">Find a coach</Link>
+              <Link to="/coaches">Near you</Link>
               <Link to="/marketplace">Marketplace</Link>
               <Link to="/auth/sign-in">Sign in</Link>
               <Link to="/auth/sign-up">Create account</Link>

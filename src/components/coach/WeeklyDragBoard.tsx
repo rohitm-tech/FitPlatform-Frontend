@@ -56,7 +56,7 @@ function DayColumn({ date, workouts }: { date: Date; workouts: Workout[] }) {
     <div
       ref={setNodeRef}
       className="flex min-h-[120px] flex-col gap-1 rounded-lg border p-1.5"
-      style={{ borderColor: isOver ? "#77518b" : "var(--fp-border)" }}
+      style={{ borderColor: isOver ? "var(--fp-accent)" : "var(--fp-border)" }}
     >
       <p
         className="text-center text-xs"

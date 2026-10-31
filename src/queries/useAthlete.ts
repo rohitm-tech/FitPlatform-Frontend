@@ -16,6 +16,13 @@ export const useAthleteWorkouts = (athleteId: string | undefined, params: { from
     enabled: Boolean(athleteId),
   });
 
+export const useAthleteLogs = (athleteId: string | undefined) =>
+  useQuery({
+    queryKey: ['athlete-logs', athleteId],
+    queryFn: async () => (await athleteApi.listLogs(athleteId as string)).data.data,
+    enabled: Boolean(athleteId),
+  });
+
 export const useAthleteInsights = (athleteId: string | undefined) =>
   useQuery({
     queryKey: ['athlete-insights', athleteId],

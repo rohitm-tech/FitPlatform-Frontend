@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import { ArrowLeft, Upload, CheckCircle2 } from "lucide-react";
+import { CheckInControl } from "../../components/athlete/CheckInDialog";
 import toast from "react-hot-toast";
 import { usePerformance } from "../../queries/usePerformance";
 import { api } from "../../services/api";
@@ -106,10 +107,15 @@ export default function RecoveryPage() {
   };
   return (
     <div className="product-page">
-      <Link to="/athlete" className="text-action">
-        <ArrowLeft size={15} />
-        Back to my day
-      </Link>
+      <div className="recovery-toolbar">
+        <Link to="/athlete" className="text-action">
+          <ArrowLeft size={15} />
+          Back to dashboard
+        </Link>
+        <CheckInControl
+          records={!isLoading && !isError ? (data?.records ?? []) : undefined}
+        />
+      </div>
       {isError && (
         <div className="product-alert">
           Could not load recovery data.{" "}

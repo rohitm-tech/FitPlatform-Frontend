@@ -1,4 +1,6 @@
 import { useEffect, useRef, useState } from "react";
+import gsap from "gsap";
+import { useGSAP } from "@gsap/react";
 import type { FormEvent } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import {
@@ -17,6 +19,7 @@ import {
   History,
   Plus,
   Search,
+  Utensils,
   Pencil,
   Archive,
   RotateCcw,
@@ -30,17 +33,10 @@ import {
 import { api } from "../../services/api";
 import toast from "react-hot-toast";
 import { useSpeechToText } from "../../hooks/useSpeechToText";
+import ChatResultCards, { type ChatCard } from "./ChatResultCards";
 import "../../companion.css";
 
 type Photo = { mimeType: string; data: string };
-type ExerciseCard = {
-  exerciseId: string;
-  name: string;
-  slug: string;
-  difficulty?: string;
-  equipment?: string[];
-  primaryMuscle?: string | null;
-};
 type ToolTraceEntry = { tool: string; label: string; status?: "done" | "error" };
 type ChatMessage = {
   _id?: string;
@@ -52,7 +48,7 @@ type ChatMessage = {
   photoId?: string;
   preview?: Photo;
   at?: string;
-  cards?: ExerciseCard[];
+  cards?: ChatCard[];
   toolTrace?: ToolTraceEntry[];
 };
 type Thread = {
@@ -71,6 +67,7 @@ type Pending = {
   failed?: boolean;
   error?: string;
 };
+gsap.registerPlugin(useGSAP);
 const photoUrl = (id: string) => `${api.defaults.baseURL}/ai/photos/${id}`;
 
 export default function TrainingCompanion({
@@ -97,8 +94,10 @@ export default function TrainingCompanion({
   const [updating, setUpdating] = useState(false);
   const [readingPhoto, setReadingPhoto] = useState(false);
   const [copied, setCopied] = useState("");
+  const root = useRef<HTMLDivElement>(null);
   const scroll = useRef<HTMLDivElement>(null);
   const composer = useRef<HTMLTextAreaElement>(null);
+  const seenMessages = useRef(0);
   const nearBottom = useRef(true);
   const previousId = useRef<string | null>(null);
   useEffect(() => {
@@ -359,6 +358,62 @@ export default function TrainingCompanion({
       setUpdating(false);
     }
   };
+  useEffect(() => {
+    const node = composer.current;
+    if (!node) return;
+    node.style.height = "auto";
+    node.style.height = `${Math.min(node.scrollHeight, 120)}px`;
+  }, [draft.text]);
+  useGSAP(
+    () => {
+      const media = gsap.matchMedia();
+      media.add("(prefers-reduced-motion: no-preference)", () => {
+        const host = root.current;
+        if (!host) return;
+        const press = (event: PointerEvent) => {
+          const target = (event.target as HTMLElement | null)?.closest(
+            ".send-message, .new-chat-button, .chat-suggestions button, .upload-control, .icon-control, .copy-answer",
+          );
+          if (!target || (target as HTMLButtonElement).disabled) return;
+          gsap.fromTo(
+            target,
+            { scale: 0.96 },
+            { scale: 1, duration: 0.28, ease: "power2.out", overwrite: "auto" },
+          );
+        };
+        host.addEventListener("pointerdown", press);
+        return () => host.removeEventListener("pointerdown", press);
+      });
+    },
+    { scope: root },
+  );
+  useGSAP(
+    () => {
+      const count = messages.length;
+      const previous = seenMessages.current;
+      seenMessages.current = count;
+      if (!previous || count <= previous) return;
+      const media = gsap.matchMedia();
+      media.add("(prefers-reduced-motion: no-preference)", () => {
+        const last = root.current?.querySelector(
+          ".conversation .chat-message:last-child",
+        );
+        if (!last) return;
+        gsap.fromTo(
+          last,
+          { autoAlpha: 0, y: 8 },
+          {
+            autoAlpha: 1,
+            y: 0,
+            duration: 0.32,
+            ease: "power2.out",
+            clearProps: "opacity,visibility,transform",
+          },
+        );
+      });
+    },
+    { scope: root, dependencies: [messages.length], revertOnUpdate: true },
+  );
   const copy = async (message: ChatMessage) => {
     try {
       await navigator.clipboard.writeText(message.text);
@@ -369,6 +424,7 @@ export default function TrainingCompanion({
   };
   return (
     <div
+      ref={root}
       className={
         expanded
           ? `ai-workspace ${historyOpen ? "show-history" : ""}`
@@ -396,7 +452,6 @@ export default function TrainingCompanion({
             New conversation
           </button>
           <label className="history-search">
-            <Search size={16} />
             <input
               aria-label="Search conversation titles"
               placeholder="Search conversations"
@@ -674,6 +729,8 @@ export default function TrainingCompanion({
                             <Search size={12} />
                           ) : t.tool === "log_recovery" ? (
                             <Check size={12} />
+                          ) : t.tool === "review_life_log" ? (
+                            <Utensils size={12} />
                           ) : (
                             <Sparkles size={12} />
                           )}
@@ -731,22 +788,7 @@ export default function TrainingCompanion({
                     </div>
                   )}
                   {m.role === "assistant" && m.cards && m.cards.length > 0 && (
-                    <div className="chat-exercise-cards">
-                      {m.cards.map((card) => (
-                        <Link
-                          key={card.exerciseId}
-                          to={`/exercises/${card.slug}`}
-                          className="chat-exercise-card"
-                        >
-                          <strong>{card.name}</strong>
-                          <span className="chat-exercise-meta">
-                            {[card.primaryMuscle, card.difficulty, card.equipment?.[0]]
-                              .filter(Boolean)
-                              .join(" · ")}
-                          </span>
-                        </Link>
-                      ))}
-                    </div>
+                    <ChatResultCards cards={m.cards} />
                   )}
                   {m.role === "assistant" &&
                     m.status !== "pending" &&
@@ -777,7 +819,8 @@ export default function TrainingCompanion({
                 <div className="chat-suggestions">
                   {[
                     "How does my recovery look?",
-                    "Explain my latest review",
+                    "How have I been eating these past few weeks?",
+                    "Find me a swimming coach near me",
                     "What should I focus on today?",
                   ].map((q) => (
                     <button
@@ -828,8 +871,9 @@ export default function TrainingCompanion({
             <textarea
               ref={composer}
               aria-label="Message your AI companion"
+              aria-describedby="composer-hint"
               placeholder="Ask about your training…"
-              rows={2}
+              rows={1}
               value={draft.text}
               maxLength={2000}
               onChange={(e) => setDraft({ text: e.target.value })}
@@ -884,17 +928,6 @@ export default function TrainingCompanion({
                   {voiceListening ? <MicOff size={19} /> : <Mic size={19} />}
                 </button>
               )}
-              <small>
-                {voiceListening
-                  ? "Listening… tap the mic to stop"
-                  : readingPhoto
-                  ? "Preparing photo…"
-                  : waiting
-                    ? "You can write your next question while the AI replies."
-                    : expanded
-                      ? "Enter to send · Shift + Enter for a new line"
-                      : "Ask a question or add a photo"}
-              </small>
               <button
                 className="send-message"
                 type="submit"
@@ -908,6 +941,24 @@ export default function TrainingCompanion({
                 <ArrowUp size={19} />
               </button>
             </div>
+            <small
+              id="composer-hint"
+              className={
+                voiceListening || readingPhoto || waiting
+                  ? "composer-status"
+                  : "composer-hint"
+              }
+            >
+              {voiceListening
+                ? "Listening… tap the mic to stop"
+                : readingPhoto
+                  ? "Preparing photo…"
+                  : waiting
+                    ? "You can write the next question while this reply finishes."
+                    : expanded
+                      ? "Enter to send. Shift + Enter for a new line."
+                      : "Ask a question or add a photo."}
+            </small>
           </form>
         )}
         <p className="companion-disclaimer">

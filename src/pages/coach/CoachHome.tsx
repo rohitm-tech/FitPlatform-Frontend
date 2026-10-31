@@ -2,7 +2,7 @@ import { useAuth } from "../../hooks/useAuth";
 import { useEffect, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { motion, useReducedMotion } from "framer-motion";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   ArrowUpRight,
   Check,
@@ -11,12 +11,15 @@ import {
   Plus,
   Search,
   X,
-  Sparkles,
+  MessageCircle,
 } from "lucide-react";
 import toast from "react-hot-toast";
 import { useCoachPerformance } from "../../queries/usePerformance";
 import { useMyAthletes, useInviteAthlete } from "../../queries/useCoach";
 import { api } from "../../services/api";
+import { MonthCalendar } from "../../components/workout/MonthCalendar";
+import { MessageThread } from "../../components/common/MessageThread";
+import "../../dashboard.css";
 export default function CoachHome() {
   const { user } = useAuth();
   const { data, isLoading, isError, refetch } = useCoachPerformance();
@@ -41,6 +44,22 @@ export default function CoachHome() {
     if (params.get("invite") === "1") setShowInvite(true);
   }, [params.get("invite")]);
   const [busy, setBusy] = useState(false);
+  const earnings = useQuery({
+    queryKey: ["coach-earnings", user?._id],
+    queryFn: async () => (await api.get("/billing/coach-earnings")).data.data,
+    enabled: Boolean(user?._id),
+  });
+  const pricing = useQuery({
+    queryKey: ["billing-pricing"],
+    queryFn: async () => (await api.get("/billing/pricing")).data.data,
+  });
+  const rupees = (minor?: number) =>
+    new Intl.NumberFormat("en-IN", {
+      style: "currency",
+      currency: "INR",
+      maximumFractionDigits: 0,
+    }).format((minor || 0) / 100);
+  const [chatOpen, setChatOpen] = useState(false);
   const all = data?.athletes || [];
   const rows = all.filter(
     (r: any) =>
@@ -48,7 +67,9 @@ export default function CoachHome() {
       (filter === "all" || r.review?.approval === "pending"),
   );
   const active =
-    rows.find((r: any) => String(r.athlete._id) === selected) || rows[0];
+    all.find((r: any) => String(r.athlete._id) === selected) ||
+    rows[0] ||
+    all[0];
   const pending = all.filter(
     (r: any) => r.review?.approval === "pending",
   ).length;
@@ -84,38 +105,51 @@ export default function CoachHome() {
       animate={{ opacity: 1, transform: "translateY(0px)" }}
       transition={{ duration: 0.3 }}
     >
-      <div className="page-top-actions">
-        <button
-          className="secondary-action"
-          onClick={() => setShowInvite(!showInvite)}
-        >
-          <Plus size={16} />
-          Invite athlete
-        </button>
-        <Link to="/coach/builder" className="primary-action">
-          Build a session <ArrowUpRight size={15} />
-        </Link>
-      </div>
-      <div className="coach-summary">
-        <div>
-          <strong>{all.length}</strong>
-          <span>Active athletes</span>
+      <header className="coach-summary">
+        <div className="coach-summary-metrics">
+          <div>
+            <strong>{all.length}</strong>
+            <span>Active athletes</span>
+          </div>
+          <div>
+            <strong>{pending}</strong>
+            <span>Awaiting your approval</span>
+          </div>
+          <div>
+            <strong>{attention}</strong>
+            <span>Recovery needs attention</span>
+          </div>
+          <div>
+            <strong>{earnings.data ? rupees(earnings.data.netMinor) : "—"}</strong>
+            <span>
+              {earnings.data
+                ? `You keep. Company keeps ${rupees(earnings.data.feeMinor)} of ${rupees(earnings.data.grossMinor)}`
+                : "You keep"}
+            </span>
+          </div>
         </div>
-        <div>
-          <strong>{pending}</strong>
-          <span>Awaiting your approval</span>
+        <div className="coach-summary-side">
+          <div className="coach-summary-actions">
+            <button
+              className="secondary-action"
+              onClick={() => setShowInvite(!showInvite)}
+            >
+              <Plus size={16} />
+              Invite athlete
+            </button>
+            <Link to="/coach/explore" className="secondary-action">
+              Explore athletes
+            </Link>
+            <Link to="/coach/builder" className="primary-action">
+              Build a session <ArrowUpRight size={15} />
+            </Link>
+          </div>
+          <p className="coach-summary-note">
+            <ShieldCheck size={16} />
+            AI reviews the evidence. You make the training decision.
+          </p>
         </div>
-        <div>
-          <strong>{attention}</strong>
-          <span>Recovery needs attention</span>
-        </div>
-        <p>
-          <ShieldCheck size={18} />
-          AI reviews the evidence.
-          <br />
-          You make the training decision.
-        </p>
-      </div>
+      </header>
       {showInvite && (
         <form
           className="invite-strip"
@@ -123,7 +157,11 @@ export default function CoachHome() {
             e.preventDefault();
             try {
               await invite.mutateAsync(email);
-              toast.success("Invitation sent to athlete’s account");
+              toast.success(
+                pricing.data
+                  ? `Invitation sent. ${rupees(pricing.data.coachInviteFeeMinor)} invite fee recorded.`
+                  : "Invitation sent to the athlete’s account",
+              );
               setEmail("");
               setShowInvite(false);
             } catch {
@@ -131,7 +169,10 @@ export default function CoachHome() {
             }
           }}
         >
-          <label htmlFor="invite-athlete">Invite an athlete</label>
+          <label htmlFor="invite-athlete">
+            Invite an athlete
+            {pricing.data ? ` · ${rupees(pricing.data.coachInviteFeeMinor)} is recorded when you send it` : ""}
+          </label>
           <input
             id="invite-athlete"
             type="email"
@@ -160,7 +201,7 @@ export default function CoachHome() {
                 className={filter === "all" ? "active" : ""}
                 onClick={() => setFilter("all")}
               >
-                All athletes
+                Your athletes
               </button>
               <button
                 className={filter === "review" ? "active" : ""}
@@ -187,6 +228,8 @@ export default function CoachHome() {
                   <th>Recovery</th>
                   <th>Training</th>
                   <th>Review</th>
+                  <th>Chat</th>
+                  <th>Dashboard</th>
                 </tr>
               </thead>
               <tbody>
@@ -194,6 +237,7 @@ export default function CoachHome() {
                   const old = roster?.athletes.find(
                     (a: any) => a.athlete._id === r.athlete._id,
                   );
+                  const unread = old?.unread || 0;
                   return (
                     <tr
                       key={r.athlete._id}
@@ -206,7 +250,10 @@ export default function CoachHome() {
                       <td>
                         <button
                           className="athlete-name"
-                          onClick={() => setSelected(r.athlete._id)}
+                          onClick={() => {
+                            setSelected(r.athlete._id);
+                            setChatOpen(false);
+                          }}
                         >
                           <span className="initial-avatar">
                             {r.athlete.name
@@ -242,6 +289,36 @@ export default function CoachHome() {
                               : r.review?.status || "No review"}
                         </span>
                       </td>
+                      <td>
+                        <button
+                          type="button"
+                          className={`roster-chat${unread ? " has-unread" : ""}`}
+                          aria-label={
+                            unread
+                              ? `Open chat with ${r.athlete.name}, ${unread} new`
+                              : `Open chat with ${r.athlete.name}`
+                          }
+                          onClick={() => {
+                            setSelected(r.athlete._id);
+                            setChatOpen(true);
+                          }}
+                        >
+                          <MessageCircle size={15} />
+                          Chat
+                          {unread > 0 && (
+                            <span className="unread-count">{unread}</span>
+                          )}
+                        </button>
+                      </td>
+                      <td>
+                        <Link
+                          className="roster-chat"
+                          to={`/coach/athletes/${r.athlete._id}`}
+                        >
+                          Visit dashboard
+                          <ArrowUpRight size={14} />
+                        </Link>
+                      </td>
                     </tr>
                   );
                 })}
@@ -252,7 +329,7 @@ export default function CoachHome() {
               <p className="panel-body">
                 {filter === "review"
                   ? "No approvals waiting. Your queue is clear."
-                  : "No athletes match. Invite an athlete to begin."}
+                  : "No athletes are assigned to you yet. Invite an athlete to begin."}
               </p>
             )}
           </div>
@@ -264,12 +341,43 @@ export default function CoachHome() {
         <aside className="work-panel coach-review">
           <div className="section-heading">
             <div>
-              <h2>{active ? active.athlete.name : "Athlete review"}</h2>
-              <p>Training decision workspace</p>
+              <h2>
+                {active
+                  ? chatOpen
+                    ? `Chat with ${active.athlete.name.split(" ")[0]}`
+                    : active.athlete.name
+                  : "Athlete review"}
+              </h2>
+              <p>
+                {chatOpen
+                  ? "Messages with an athlete assigned to you"
+                  : "Readiness and the next training decision"}
+              </p>
             </div>
-            <Sparkles size={19} />
+            {active && (
+              <button
+                type="button"
+                className="text-action"
+                onClick={() => setChatOpen((open) => !open)}
+              >
+                {chatOpen ? "Review" : "Chat"}
+              </button>
+            )}
           </div>
-          {active ? (
+          {active && chatOpen ? (
+            <div className="panel-body">
+              <MessageThread
+                endpoint={`/coach/athletes/${active.athlete._id}/messages`}
+                selfId={user?._id || ""}
+                otherName={active.athlete.name.split(" ")[0]}
+                placeholder={`Write to ${active.athlete.name.split(" ")[0]}…`}
+                autoFocus
+                onSeen={() =>
+                  query.invalidateQueries({ queryKey: ["coach-athletes"] })
+                }
+              />
+            </div>
+          ) : active ? (
             <div className="panel-body">
               <div className="review-profile">
                 <span className={`readiness-tag ${active.readiness.status}`}>
@@ -457,6 +565,41 @@ export default function CoachHome() {
           )}
         </aside>
       </div>
+      <section className="work-panel coach-calendar" aria-label="Training calendar">
+        <div className="section-heading coach-calendar-head">
+          <div>
+            <h2>Training calendar</h2>
+            <p>Sessions for an athlete assigned to you.</p>
+          </div>
+          <label>
+            Athlete
+            <select
+              className="fp-input"
+              value={active?.athlete._id || ""}
+              onChange={(event) => {
+                setSelected(event.target.value);
+                setFilter("all");
+                setSearch("");
+              }}
+              disabled={!all.length}
+            >
+              {!all.length && <option value="">No assigned athletes</option>}
+              {all.map((row: any) => (
+                <option key={row.athlete._id} value={row.athlete._id}>
+                  {row.athlete.name}
+                </option>
+              ))}
+            </select>
+          </label>
+        </div>
+        {active ? (
+          <MonthCalendar athleteId={active.athlete._id} showDayPanel />
+        ) : (
+          <p className="panel-body">
+            Invite an athlete to see their training calendar.
+          </p>
+        )}
+      </section>
       {(roster?.invited?.length ?? 0) > 0 && (
         <p className="small-note mt-6">
           {roster?.invited?.length ?? 0} pending athlete invitations. Athletes

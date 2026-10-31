@@ -5,7 +5,7 @@
   align-items: center;
   padding: 32px 36px;
   border-radius: 16px;
-  background: #eee7f3;
+  background: var(--fp-surface-alt);
   margin-bottom: 28px;
 }
 .coach-directory-intro h2 {
@@ -13,11 +13,11 @@
   font-weight: 750;
   line-height: 1.2;
   letter-spacing: -0.8px;
-  color: #4e345c;
+  color: var(--fp-text);
 }
 .coach-directory-intro p {
   font-size: 14px;
-  color: #796286;
+  color: var(--fp-text);
   line-height: 1.85;
   max-width: 47ch;
 }
@@ -32,11 +32,11 @@
   align-items: center;
   gap: 10px;
   border: 1px solid var(--fp-border);
-  background: white;
+  background: var(--fp-surface);
   padding: 0 13px;
   border-radius: 8px;
   flex: 1;
-  color: #716779;
+  color: var(--fp-text-muted);
 }
 .coach-directory-filters input[type="search"] {
   min-height: 44px;
@@ -58,12 +58,12 @@
   min-height: 44px;
   white-space: nowrap;
   font-size: 13px;
-  color: #716779;
+  color: var(--fp-text-muted);
 }
 .coach-available-toggle input {
   width: 17px;
   height: 17px;
-  accent-color: #77518b;
+  accent-color: var(--fp-accent-ink);
 }
 .coach-directory-grid {
   display: grid;
@@ -74,7 +74,7 @@
   padding: 26px;
   border: 1px solid var(--fp-border);
   border-radius: 14px;
-  background: white;
+  background: var(--fp-surface);
 }
 .coach-directory-grid:has(> :only-child) {
   grid-template-columns: 1fr;
@@ -112,9 +112,9 @@
   width: 66px;
   height: 66px;
   border-radius: 50%;
-  background: #eee6f3;
-  border: 1px solid #dfcee8;
-  color: #77518b;
+  background: var(--fp-surface-alt);
+  border: 1px solid var(--fp-border);
+  color: var(--fp-accent-ink);
   font-weight: 700;
   font-size: 22px;
   flex: none;
@@ -125,7 +125,7 @@
 }
 .coach-card-identity p {
   font-size: 11px;
-  color: #716779;
+  color: var(--fp-text-muted);
   margin-top: 5px;
 }
 .coach-directory-card > h3 {
@@ -143,8 +143,8 @@
 }
 .coach-specialties > span {
   font-size: 11px;
-  color: #77518b;
-  background: #f4eff8;
+  color: var(--fp-accent-ink);
+  background: var(--fp-surface);
   border-radius: 5px;
   padding: 5px 9px;
 }
@@ -154,7 +154,7 @@
   gap: 18px;
   flex-wrap: wrap;
   margin-top: 20px;
-  color: #716779;
+  color: var(--fp-text-muted);
   font-size: 12px;
 }
 .coach-card-location > span {
@@ -178,7 +178,7 @@
 .coach-card-bottom > div > span {
   display: block;
   font-size: 12px;
-  color: #716779;
+  color: var(--fp-text-muted);
   margin-top: 5px;
 }
 .coach-card-bottom > a {
@@ -188,7 +188,7 @@
   display: flex;
   gap: 24px;
   padding: 30px 32px;
-  background: #eee7f3;
+  background: var(--fp-surface-alt);
   border-radius: 16px;
   margin-bottom: 28px;
   align-items: center;
@@ -197,7 +197,7 @@
   width: 100px;
   height: 100px;
   font-size: 32px;
-  background: #faf7fc;
+  background: var(--fp-surface);
 }
 .coach-public-hero h1 {
   font-size: 30px;
@@ -208,12 +208,12 @@
   font-size: 18px;
   line-height: 1.5;
   font-weight: 550;
-  color: #684d76;
+  color: var(--fp-accent-ink);
   margin-top: 8px;
 }
 .coach-public-hero > div > p {
   font-size: 12px;
-  color: #796286;
+  color: var(--fp-text);
   margin-top: 10px;
 }
 .coach-bio {
@@ -229,7 +229,7 @@
 }
 .coach-profile-details dt {
   font-size: 12px;
-  color: #716779;
+  color: var(--fp-text-muted);
   margin-bottom: 5px;
 }
 .coach-profile-details dd {
@@ -244,7 +244,7 @@
   padding-left: 20px;
   font-size: 14px;
   line-height: 1.8;
-  color: #716779;
+  color: var(--fp-text-muted);
 }
 @media (max-width: 900px) {
   .coach-directory-grid {

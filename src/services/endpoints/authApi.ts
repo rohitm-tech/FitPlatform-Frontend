@@ -3,7 +3,7 @@ import type { ApiEnvelope } from '../../types/api';
 import type { User, Role } from '../../types/domain';
 
 export const authApi = {
-  register: (payload: { name: string; email: string; password: string; roles?: Role[] }) =>
+  register: (payload: { name: string; email: string; password: string; roles?: Role[]; gymName?: string }) =>
     api.post<ApiEnvelope<{ user: User }>>('/auth/register', payload),
 
   login: (payload: { email: string; password: string }) =>

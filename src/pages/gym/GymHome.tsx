@@ -26,17 +26,19 @@ export default function GymHome() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [busy, setBusy] = useState("");
-  const [name, setName] = useState("");
+  const [installMinor, setInstallMinor] = useState<number | null>(null);
   const [logoUrl, setLogo] = useState("");
   const load = async () => {
     setError("");
     try {
-      const [d, p, k, c] = await Promise.all([
+      const [d, p, k, c, prices] = await Promise.all([
         api.get("/gym/dashboard"),
         api.get("/gym/people"),
         api.get("/gym/devices"),
         api.get("/gym/people?role=coach"),
+        api.get("/billing/pricing"),
       ]);
+      setInstallMinor(prices.data.data.gymMonthlyMinor);
       setData(d.data.data);
       setName(d.data.data.gym.name);
       setLogo(d.data.data.gym.logoUrl || "");
@@ -92,6 +94,17 @@ export default function GymHome() {
           <h1 className="font-display text-3xl font-semibold">
             {data?.gym.name || "Gym dashboard"}
           </h1>
+          <p className="mt-2 text-sm text-slate-400">
+            Installation{" "}
+            {installMinor != null
+              ? new Intl.NumberFormat("en-IN", {
+                  style: "currency",
+                  currency: "INR",
+                  maximumFractionDigits: 0,
+                }).format(installMinor / 100)
+              : "fee"}{" "}
+            is billed every month.
+          </p>
         </div>
         <div className="flex gap-2">
           {["Overview", "Members", "Coaches", "Kiosk", "Branding"].map((x) => (
@@ -150,7 +163,7 @@ export default function GymHome() {
                     className="w-full rounded-t"
                     style={{
                       height: `${(x.count / Math.max(1, ...(data?.week || []).map((day) => day.count))) * 95}px`,
-                      background: "#77518b",
+                      background: "var(--fp-chart)",
                     }}
                   />
                   <span className="text-[10px] text-slate-500">

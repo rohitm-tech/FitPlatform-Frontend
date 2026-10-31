@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { ArrowLeft, MapPin, Globe } from "lucide-react";
 import { api } from "../../services/api";
 import { ListingCard } from "../marketplace/marketplaceShared";
+import { ReachMap } from "../../components/discover/ReachMap";
 import "../../coaches.css";
 import "../../marketplace.css";
 export default function PublicCoachPage() {
@@ -16,7 +17,7 @@ export default function PublicCoachPage() {
     <div className="product-page coach-directory-page">
       <Link className="page-back" to="/coaches">
         <ArrowLeft size={16} />
-        Find a coach
+        Near you
       </Link>
       {query.isLoading ? (
         <div className="page-state" role="status">
@@ -63,6 +64,28 @@ export default function PublicCoachPage() {
               </div>
             </div>
           </div>
+          {profile.point?.coordinates?.length === 2 && (
+            <section className="near-base">
+              <h2>Coaching base</h2>
+              <div className="near-map-wrap near-map-short">
+                <ReachMap
+                  center={{
+                    lat: profile.point.coordinates[1],
+                    lng: profile.point.coordinates[0],
+                  }}
+                  pins={[
+                    {
+                      id: "base",
+                      lat: profile.point.coordinates[1],
+                      lng: profile.point.coordinates[0],
+                      label: profile.location || profile.coachId.name,
+                    },
+                  ]}
+                  selectedId="base"
+                />
+              </div>
+            </section>
+          )}
           <div className="two-column-page">
             <section className="page-section">
               <h2>A little about my approach</h2>

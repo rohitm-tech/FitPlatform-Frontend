@@ -3,10 +3,29 @@ import type { FormEvent } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { Plus, Trash2, ArrowLeft } from "lucide-react";
 import { useAuth } from "../../hooks/useAuth";
-import { useAthleteWorkouts, useLogWorkout } from "../../queries/useAthlete";
+import {
+  useAthleteLogs,
+  useAthleteWorkouts,
+  useLogWorkout,
+} from "../../queries/useAthlete";
 import { useExercises } from "../../queries/useExercises";
 import type { SetLog } from "../../types/domain";
 type Item = { exerciseId: string; exerciseName: string; sets: SetLog[] };
+const BODY_AREAS: {
+  id: string;
+  label: string;
+  group?: string;
+  type?: string;
+}[] = [
+  { id: "chest", label: "Chest", group: "chest" },
+  { id: "back", label: "Back", group: "back" },
+  { id: "shoulders", label: "Shoulders", group: "shoulders" },
+  { id: "arms", label: "Arms", group: "arms" },
+  { id: "legs", label: "Legs", group: "legs" },
+  { id: "core", label: "Core", group: "core" },
+  { id: "cardio", label: "Cardio", type: "cardio" },
+  { id: "mobility", label: "Mobility", type: "mobility" },
+];
 const today = () => {
   const d = new Date();
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
@@ -23,6 +42,7 @@ export default function WorkoutLoggerPage() {
   );
   const [items, setItems] = useState<Item[]>([]);
   const [search, setSearch] = useState("");
+  const [areaId, setAreaId] = useState("");
   const [date, setDate] = useState(params.get("date") || today());
   const [duration, setDuration] = useState(30);
   const [effort, setEffort] = useState(6);
@@ -32,8 +52,43 @@ export default function WorkoutLoggerPage() {
   const initialized = useRef(false);
   const errorRef = useRef<HTMLDivElement>(null);
   const saved = useRef(false);
-  const searchResults = useExercises({ q: search || undefined, limit: 8 });
+  const logs = useAthleteLogs(user?._id);
+  const catalog = useExercises({ limit: 200 });
   const log = useLogWorkout(user?._id);
+  const area = BODY_AREAS.find((item) => item.id === areaId);
+  const addedIds = useMemo(
+    () => new Set(items.map((item) => item.exerciseId)),
+    [items],
+  );
+  const recent = useMemo(() => {
+    const seen = new Set<string>();
+    const list: { id: string; name: string }[] = [];
+    for (const entry of logs.data || []) {
+      for (const item of entry.items) {
+        if (typeof item.exerciseId === "string") continue;
+        if (seen.has(item.exerciseId._id)) continue;
+        seen.add(item.exerciseId._id);
+        list.push({ id: item.exerciseId._id, name: item.exerciseId.name });
+        if (list.length === 8) return list;
+      }
+    }
+    return list;
+  }, [logs.data]);
+  const visibleExercises = useMemo(() => {
+    const query = search.trim().toLowerCase();
+    return (catalog.data?.exercises || []).filter((exercise) => {
+      if (
+        area?.group &&
+        !exercise.primaryMuscles.some((muscle) => muscle.group === area.group)
+      ) {
+        return false;
+      }
+      if (area?.type && exercise.type !== area.type) return false;
+      if (query && !exercise.name.toLowerCase().includes(query)) return false;
+      return true;
+    });
+  }, [catalog.data, area, search]);
+  const showCatalog = Boolean(area || search.trim());
   useEffect(() => {
     if (assigned && !initialized.current) {
       setItems(
@@ -68,6 +123,20 @@ export default function WorkoutLoggerPage() {
     window.addEventListener("beforeunload", warn);
     return () => window.removeEventListener("beforeunload", warn);
   }, [items.length]);
+  const addExercise = (exerciseId: string, exerciseName: string) => {
+    setItems((rows) =>
+      rows.some((row) => row.exerciseId === exerciseId)
+        ? rows
+        : [
+            ...rows,
+            {
+              exerciseId,
+              exerciseName,
+              sets: [{ reps: 10, weightKg: 0 }],
+            },
+          ],
+    );
+  };
   const updateSet = (
     i: number,
     j: number,
@@ -154,58 +223,138 @@ export default function WorkoutLoggerPage() {
         <div className="two-column-page">
           <section className="page-section">
             <h2>Exercises & sets</h2>
-            {assigned && (
-              <p>
-                Session targets are prefilled. Update or remove sets to match
-                what you completed.
-              </p>
+            <p>
+              {assigned
+                ? "Session targets are prefilled. Update the sets to match what you completed, and add anything else from a body area."
+                : "Pick a body area to see the movements, then add each one you did. Search only if you already know the name."}
+            </p>
+            <div className="logger-areas" role="group" aria-label="Body areas">
+              {BODY_AREAS.map((item) => (
+                <button
+                  key={item.id}
+                  type="button"
+                  aria-pressed={areaId === item.id}
+                  onClick={() =>
+                    setAreaId((current) => (current === item.id ? "" : item.id))
+                  }
+                >
+                  {item.label}
+                </button>
+              ))}
+            </div>
+            {recent.length > 0 && (
+              <div className="logger-recent">
+                <p id="recent-exercises-label">From your recent sessions</p>
+                <div
+                  className="logger-recent-list"
+                  role="group"
+                  aria-labelledby="recent-exercises-label"
+                >
+                  {recent.map((exercise) => {
+                    const added = addedIds.has(exercise.id);
+                    return (
+                      <button
+                        key={exercise.id}
+                        type="button"
+                        aria-pressed={added}
+                        aria-label={
+                          added
+                            ? `${exercise.name} is in this session`
+                            : `Add ${exercise.name}`
+                        }
+                        onClick={() => addExercise(exercise.id, exercise.name)}
+                      >
+                        {exercise.name}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
             )}
             <label className="fp-label mt-5" htmlFor="exercise-search">
-              Add an exercise
+              Search by name
             </label>
             <input
               id="exercise-search"
               className="fp-input"
-              placeholder="Search the exercise library"
+              type="search"
+              placeholder="Try bench, squat, row…"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
-            {search && (
-              <div className="search-options">
-                {searchResults.isLoading ? (
-                  <p className="empty-copy">Searching…</p>
-                ) : searchResults.isError ? (
-                  <p className="empty-copy">
-                    Search unavailable.{" "}
-                    <button
-                      type="button"
-                      onClick={() => searchResults.refetch()}
-                    >
+            {showCatalog && (
+              <div
+                className="logger-browse"
+                role="region"
+                aria-label={
+                  area
+                    ? `${area.label} exercises`
+                    : "Exercises matching your search"
+                }
+              >
+                {catalog.isLoading ? (
+                  <p className="logger-browse-status" role="status">
+                    Loading movements…
+                  </p>
+                ) : catalog.isError ? (
+                  <p className="logger-browse-status">
+                    The exercise library couldn’t be loaded.{" "}
+                    <button type="button" onClick={() => catalog.refetch()}>
                       Retry
                     </button>
                   </p>
-                ) : searchResults.data?.exercises.length ? (
-                  searchResults.data.exercises.map((ex) => (
-                    <button
-                      key={ex._id}
-                      type="button"
-                      onClick={() => {
-                        setItems((rows) => [
-                          ...rows,
-                          {
-                            exerciseId: ex._id,
-                            exerciseName: ex.name,
-                            sets: [{ reps: 10, weightKg: 0 }],
-                          },
-                        ]);
-                        setSearch("");
-                      }}
-                    >
-                      {ex.name}
-                    </button>
-                  ))
+                ) : visibleExercises.length ? (
+                  <ul>
+                    {visibleExercises.map((exercise) => {
+                      const added = addedIds.has(exercise._id);
+                      const detail = [
+                        exercise.primaryMuscles
+                          .map((muscle) => muscle.displayName)
+                          .join(", "),
+                        exercise.equipment.join(", "),
+                      ]
+                        .filter(Boolean)
+                        .join(" · ");
+                      return (
+                        <li key={exercise._id}>
+                          <button
+                            type="button"
+                            className="logger-browse-row"
+                            aria-pressed={added}
+                            aria-label={
+                              added
+                                ? `${exercise.name} is in this session`
+                                : `Add ${exercise.name}`
+                            }
+                            onClick={() =>
+                              addExercise(exercise._id, exercise.name)
+                            }
+                          >
+                            <span className="logger-browse-copy">
+                              <strong>{exercise.name}</strong>
+                              {detail && <span>{detail}</span>}
+                            </span>
+                            <em className="logger-browse-state">
+                              {added ? "Added" : "Add"}
+                            </em>
+                          </button>
+                        </li>
+                      );
+                    })}
+                  </ul>
                 ) : (
-                  <p className="empty-copy">No exercises match that search.</p>
+                  <p className="logger-browse-status">
+                    {area && !search.trim()
+                      ? `No ${area.label.toLowerCase()} movements are in the library yet.`
+                      : area && search.trim()
+                        ? `Nothing in ${area.label} matches that name.`
+                        : "No exercises match that name."}{" "}
+                    {area && search.trim() && (
+                      <button type="button" onClick={() => setAreaId("")}>
+                        Search the whole library
+                      </button>
+                    )}
+                  </p>
                 )}
               </div>
             )}
@@ -310,7 +459,9 @@ export default function WorkoutLoggerPage() {
               ))}
               {!items.length && (
                 <p className="logger-empty">
-                  Search above to add your first exercise.
+                  {showCatalog
+                    ? "Movements you add show up here, ready for sets."
+                    : "Choose a body area to see exercises you can add."}
                 </p>
               )}
             </div>

@@ -3,7 +3,7 @@ import type { ApiEnvelope } from '../../types/api';
 import type { User, UserProfile } from '../../types/domain';
 
 export const userApi = {
-  completeOnboarding: (payload: UserProfile) =>
+  completeOnboarding: (payload: Partial<UserProfile> & { name?: string }) =>
     api.post<ApiEnvelope<User>>('/users/onboarding', payload),
 
   exportMyData: () => api.get<ApiEnvelope<{ user: User }>>('/users/me/export'),

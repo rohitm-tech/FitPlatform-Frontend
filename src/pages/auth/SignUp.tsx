@@ -1,12 +1,24 @@
 import { useEffect, useRef, useState } from "react";
 import type { FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { ArrowRight, ShieldCheck } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { useAppDispatch } from "../../store/hooks";
 import { registerUser } from "../../store/slices/authSlice";
+import { setActiveRole } from "../../store/slices/uiSlice";
+import { roleHomePath } from "../../hooks/useAuth";
 import { AuthFrame, PasswordField } from "../../components/common/AuthFrame";
+import type { Role } from "../../types/domain";
+
+const accountTypes: { id: Role; label: string; hint: string }[] = [
+  { id: "athlete", label: "Athlete", hint: "Log training and work with a coach." },
+  { id: "coach", label: "Coach", hint: "Invite athletes and assign sessions." },
+  { id: "gym_owner", label: "Gym", hint: "Run your gym and its members." },
+];
+
 export default function SignUp() {
+  const [account, setAccount] = useState<Role>("athlete");
   const [name, setName] = useState("");
+  const [gymName, setGymName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
@@ -26,6 +38,11 @@ export default function SignUp() {
       setError("Enter the name you would like to use.");
       return;
     }
+    if (account === "gym_owner" && !gymName.trim()) {
+      setField("gym");
+      setError("Enter the gym name.");
+      return;
+    }
     setBusy(true);
     try {
       await dispatch(
@@ -33,10 +50,14 @@ export default function SignUp() {
           name: name.trim(),
           email: email.trim(),
           password,
-          roles: ["athlete"],
+          roles: [account],
+          gymName: account === "gym_owner" ? gymName.trim() : undefined,
         }),
       ).unwrap();
-      navigate("/onboarding", { replace: true });
+      dispatch(setActiveRole(account));
+      navigate(account === "athlete" ? "/onboarding" : roleHomePath(account), {
+        replace: true,
+      });
     } catch (e: any) {
       const duplicate = e.status === 409 || e.message?.includes("409");
       setField(duplicate ? "email" : "");
@@ -53,8 +74,8 @@ export default function SignUp() {
     <AuthFrame signup>
       <div className="auth-form-content">
         <div className="auth-heading">
-          <h1>Start with you.</h1>
-          <p>Create your account. We’ll build your training profile next.</p>
+          <h1>Create your account.</h1>
+          <p>Sign up as an athlete, a coach, or a gym.</p>
         </div>
         <form className="auth-form" onSubmit={submit} aria-busy={busy}>
           {error && (
@@ -69,6 +90,24 @@ export default function SignUp() {
               {field && <a href={`#signup-${field}`}>Go to {field}</a>}
             </div>
           )}
+          <fieldset className="signup-roles">
+            <legend>I am joining as</legend>
+            {accountTypes.map(({ id, label, hint }) => (
+              <label key={id} className={account === id ? "is-selected" : ""}>
+                <input
+                  type="radio"
+                  name="account"
+                  value={id}
+                  checked={account === id}
+                  onChange={() => setAccount(id)}
+                />
+                <span>
+                  <strong>{label}</strong>
+                  <small>{hint}</small>
+                </span>
+              </label>
+            ))}
+          </fieldset>
           <div className="auth-field">
             <label htmlFor="signup-name">Your name</label>
             <input
@@ -85,6 +124,23 @@ export default function SignUp() {
               aria-describedby={field === "name" ? "signup-error" : undefined}
             />
           </div>
+          {account === "gym_owner" && (
+            <div className="auth-field">
+              <label htmlFor="signup-gym">Gym name</label>
+              <input
+                id="signup-gym"
+                name="gym"
+                className="auth-input"
+                maxLength={100}
+                required
+                value={gymName}
+                onChange={(e) => setGymName(e.target.value)}
+                placeholder="The name members will see"
+                aria-invalid={field === "gym" || undefined}
+                aria-describedby={field === "gym" ? "signup-error" : undefined}
+              />
+            </div>
+          )}
           <div className="auth-field">
             <label htmlFor="signup-email">Email address</label>
             <input
@@ -114,16 +170,6 @@ export default function SignUp() {
             />
             <p id="password-guidance" className="auth-field-hint">
               At least 8 characters. Make it something only you know.
-            </p>
-          </div>
-          <div className="auth-access-note">
-            <ShieldCheck size={19} />
-            <p>
-              You’ll start as an athlete.
-              <span>
-                Coach and gym-owner access is approved by an admin. Invited
-                members can join their gym after sign-up.
-              </span>
             </p>
           </div>
           <button className="auth-submit" disabled={busy} type="submit">

@@ -68,7 +68,12 @@ export async function payForPackage(
         name: "Rhythm",
         description: order.title,
         prefill: user,
-        theme: { color: "#77518b" },
+        theme: {
+          color:
+            getComputedStyle(document.documentElement)
+              .getPropertyValue("--fp-accent")
+              .trim() || "#d32f2f",
+        },
         handler: async (result) => {
           finishing = true;
           try {

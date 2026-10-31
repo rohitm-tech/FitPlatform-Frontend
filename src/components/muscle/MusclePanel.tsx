@@ -6,7 +6,11 @@ import { clearSelectedMuscle } from "../../store/slices/explorerSlice";
 import { useMuscleDetail } from "../../queries/useMuscles";
 import "../../muscle-panel.css";
 
-export function MusclePanel() {
+export function MusclePanel({
+  onBrowseExercises,
+}: {
+  onBrowseExercises?: (muscleId?: string) => void;
+} = {}) {
   const dispatch = useAppDispatch();
   const selectedMuscleKey = useAppSelector(
     (state) => state.explorer.selectedMuscleKey,
@@ -26,9 +30,15 @@ export function MusclePanel() {
           Select a muscle on the model or choose one from the menu. Find
           movements that train it and learn the technique.
         </p>
-        <Link to="/exercises">
-          Browse all exercises <ArrowUpRight size={16} />
-        </Link>
+        {onBrowseExercises ? (
+          <button type="button" onClick={() => onBrowseExercises()}>
+            Browse all exercises <ArrowUpRight size={16} />
+          </button>
+        ) : (
+          <Link to="/exercises">
+            Browse all exercises <ArrowUpRight size={16} />
+          </Link>
+        )}
       </div>
     );
   if (isError)
@@ -125,9 +135,15 @@ export function MusclePanel() {
         )}
       </div>
       <footer className="muscle-detail-footer">
-        <Link to={`/exercises?muscle=${muscle._id}`}>
-          Open in exercise library <ArrowUpRight size={16} />
-        </Link>
+        {onBrowseExercises ? (
+          <button type="button" onClick={() => onBrowseExercises(muscle._id)}>
+            See all exercises <ArrowUpRight size={16} />
+          </button>
+        ) : (
+          <Link to={`/exercises?muscle=${muscle._id}`}>
+            Open in exercise library <ArrowUpRight size={16} />
+          </Link>
+        )}
         <p>Open a movement for instructions and technique.</p>
       </footer>
     </section>

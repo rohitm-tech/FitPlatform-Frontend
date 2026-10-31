@@ -32,7 +32,7 @@ export const loginUser = createAsyncThunk(
 
 export const registerUser = createAsyncThunk(
   'auth/register',
-  async (payload: { name: string; email: string; password: string; roles?: User['roles'] },{rejectWithValue}) => {
+  async (payload: { name: string; email: string; password: string; roles?: User['roles']; gymName?: string },{rejectWithValue}) => {
     try{const res = await authApi.register(payload);await queryClient.cancelQueries();queryClient.clear();return res.data.data.user;}catch(error:any){return rejectWithValue({status:error.response?.status,code:error.code,message:error.response?.data?.message||error.message});}
   }
 );

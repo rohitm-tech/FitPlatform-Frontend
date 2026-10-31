@@ -149,20 +149,18 @@ export default function MarketManagePage() {
         <ArrowLeft size={16} />
         Marketplace
       </Link>
-      <div className="page-top-actions">
-        <Link
-          className="secondary-action"
-          to="/marketplace/requests?view=provider"
-        >
-          Incoming enquiries
-          <ArrowUpRight size={16} />
-        </Link>
-      </div>
       <div className="market-manage-layout">
         <section className="page-section">
           <div className="section-row">
             <h2>{admin ? "All listings" : "Your listings"}</h2>
-            <button
+            <div className="section-row-actions">
+              <Link
+                className="secondary-action"
+                to="/marketplace/requests?view=provider"
+              >
+                Incoming enquiries
+              </Link>
+              <button
               className="row-action"
               onClick={() => {
                 setSelected(null);
@@ -178,6 +176,7 @@ export default function MarketManagePage() {
               <Plus size={16} />
               New
             </button>
+            </div>
           </div>
           <label className="sr-only" htmlFor="listing-status-filter">
             Filter listing status

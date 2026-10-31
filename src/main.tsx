@@ -31,7 +31,18 @@ createRoot(document.getElementById("root")!).render(
             <ErrorBoundary>
               <App />
             </ErrorBoundary>
-            <Toaster position="top-right" />
+            <Toaster
+              position="top-right"
+              toastOptions={{
+                style: {
+                  background: "var(--fp-surface)",
+                  color: "var(--fp-text)",
+                  border: "1px solid var(--fp-border)",
+                  borderRadius: 8,
+                  boxShadow: "none",
+                },
+              }}
+            />
           </AuthProvider>
         </BrowserRouter>
       </QueryClientProvider>

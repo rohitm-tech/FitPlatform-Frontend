@@ -1,5 +1,5 @@
 import { lazy, Suspense, useEffect } from "react";
-import { Route, Routes, useLocation } from "react-router-dom";
+import { Navigate, Route, Routes, useLocation } from "react-router-dom";
 import { Navbar } from "./components/layout/Navbar";
 import { ProtectedRoute } from "./components/common/ProtectedRoute";
 import { RoleRoute } from "./components/common/RoleRoute";
@@ -37,14 +37,15 @@ const WorkoutLoggerPage = lazy(
   () => import("./pages/athlete/WorkoutLoggerPage"),
 );
 const HistoryPage = lazy(() => import("./pages/athlete/HistoryPage"));
-const InsightsPage = lazy(() => import("./pages/athlete/InsightsPage"));
 const CoachHome = lazy(() => import("./pages/coach/CoachHome"));
-const CoachDirectoryPage = lazy(
-  () => import("./pages/coach/CoachDirectoryPage"),
+const DiscoverPage = lazy(() => import("./pages/discover/DiscoverPage"));
+const PlaceDetailPage = lazy(
+  () => import("./pages/discover/PlaceDetailPage"),
 );
 const PublicCoachPage = lazy(() => import("./pages/coach/PublicCoachPage"));
 const CoachProfilePage = lazy(() => import("./pages/coach/CoachProfilePage"));
 const AthleteDetailPage = lazy(() => import("./pages/coach/AthleteDetailPage"));
+const CoachExplorePage = lazy(() => import("./pages/coach/CoachExplorePage"));
 const WorkoutBuilderPage = lazy(
   () => import("./pages/coach/WorkoutBuilderPage"),
 );
@@ -97,7 +98,8 @@ function App() {
       >
         <Routes>
           <Route path="/" element={<Landing />} />
-          <Route path="/coaches" element={<CoachDirectoryPage />} />
+          <Route path="/coaches" element={<DiscoverPage />} />
+          <Route path="/places/:placeId" element={<PlaceDetailPage />} />
           <Route path="/coaches/:coachId" element={<PublicCoachPage />} />
           <Route path="/marketplace" element={<MarketplacePage />} />
           <Route path="/marketplace/:slug" element={<ListingDetailPage />} />
@@ -135,11 +137,15 @@ function App() {
             <Route path="/athlete/explorer" element={<MuscleExplorerPage />} />
             <Route path="/athlete/log" element={<WorkoutLoggerPage />} />
             <Route path="/athlete/history" element={<HistoryPage />} />
-            <Route path="/athlete/insights" element={<InsightsPage />} />
+            <Route
+              path="/athlete/insights"
+              element={<Navigate to="/athlete" replace />}
+            />
           </Route>
 
           <Route element={<RoleRoute roles={["coach"]} />}>
             <Route path="/coach" element={<CoachHome />} />
+            <Route path="/coach/explore" element={<CoachExplorePage />} />
             <Route path="/coach/profile" element={<CoachProfilePage />} />
             <Route
               path="/coach/athletes/:athleteId"

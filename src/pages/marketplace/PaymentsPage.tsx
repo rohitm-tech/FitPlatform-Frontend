@@ -24,11 +24,11 @@ export default function PaymentsPage() {
   });
   return (
     <div className="product-page marketplace-page">
-      <Link className="page-back" to="/marketplace/requests">
-        <ArrowLeft size={16} />
-        Marketplace requests
-      </Link>
-      <div className="page-top-actions">
+      <div className="page-lead">
+        <Link className="page-back" to="/marketplace/requests">
+          <ArrowLeft size={16} />
+          Marketplace requests
+        </Link>
         <Link className="secondary-action" to="/settings?section=data">
           Export account records
         </Link>

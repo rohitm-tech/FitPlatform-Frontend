@@ -329,6 +329,11 @@ function AudienceFeatures() {
           </p>
           <ul>
             <li>Save offerings and ask about availability</li>
+            <li>
+              <Link to="/coaches">
+                Coaches, pools, turf and grounds near you
+              </Link>
+            </li>
             <li>Providers manage enquiries & listings</li>
             <li>Admin review before publication</li>
           </ul>

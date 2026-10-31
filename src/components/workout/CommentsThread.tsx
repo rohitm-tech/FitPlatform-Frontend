@@ -27,8 +27,29 @@ export function CommentsThread({
       setError("Your note could not be saved. Please try again.");
     }
   };
+  const coachNotes = [...(query.data || [])]
+    .filter((comment) => comment.authorId?.roles?.includes("coach"))
+    .sort(
+      (a, b) =>
+        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+    );
+  const latestCoachNote = coachNotes[0];
   return (
-    <details className="coach-notes">
+    <>
+      {latestCoachNote && (
+        <div className="coach-note-callout">
+          <p>{latestCoachNote.text}</p>
+          <p className="coach-note-by">
+            {latestCoachNote.authorId?.name || "Coach"}, coach
+            {coachNotes.length > 1 ? ` · ${coachNotes.length} notes` : ""}
+            {" · "}
+            <time dateTime={latestCoachNote.createdAt}>
+              {new Date(latestCoachNote.createdAt).toLocaleDateString()}
+            </time>
+          </p>
+        </div>
+      )}
+      <details className="coach-notes">
       <summary>
         Coach & athlete notes
         {query.data?.length ? ` (${query.data.length})` : ""}
@@ -90,5 +111,6 @@ export function CommentsThread({
         </p>
       )}
     </details>
+    </>
   );
 }

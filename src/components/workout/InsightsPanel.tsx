@@ -106,16 +106,16 @@ export function InsightsPanel({
                     margin={{ top: 8, right: 8, left: -18, bottom: 8 }}
                     accessibilityLayer
                   >
-                    <CartesianGrid vertical={false} stroke="#ebe6ef" />
+                    <CartesianGrid vertical={false} stroke="var(--fp-border)" />
                     <XAxis
                       dataKey="group"
-                      tick={{ fontSize: 11, fill: "#716779" }}
+                      tick={{ fontSize: 11, fill: "var(--fp-text-muted)" }}
                       tickLine={false}
                       axisLine={false}
                     />
                     <YAxis
                       allowDecimals={false}
-                      tick={{ fontSize: 11, fill: "#716779" }}
+                      tick={{ fontSize: 11, fill: "var(--fp-text-muted)" }}
                       tickLine={false}
                       axisLine={false}
                     />
@@ -123,12 +123,12 @@ export function InsightsPanel({
                     <Legend wrapperStyle={{ fontSize: 12 }} />
                     <Bar
                       dataKey="Last 7 days"
-                      fill="#77518b"
+                      fill="var(--fp-chart)"
                       isAnimationActive={false}
                     />
                     <Bar
                       dataKey="Last 14 days"
-                      fill="#c8b7d2"
+                      fill="var(--fp-chart-muted)"
                       isAnimationActive={false}
                     />
                   </BarChart>
@@ -203,16 +203,16 @@ export function InsightsPanel({
                     margin={{ top: 8, right: 12, left: -18, bottom: 8 }}
                     accessibilityLayer
                   >
-                    <CartesianGrid vertical={false} stroke="#ebe6ef" />
+                    <CartesianGrid vertical={false} stroke="var(--fp-border)" />
                     <XAxis
                       dataKey="week"
-                      tick={{ fontSize: 11, fill: "#716779" }}
+                      tick={{ fontSize: 11, fill: "var(--fp-text-muted)" }}
                       tickLine={false}
                       axisLine={false}
                     />
                     <YAxis
                       allowDecimals={false}
-                      tick={{ fontSize: 11, fill: "#716779" }}
+                      tick={{ fontSize: 11, fill: "var(--fp-text-muted)" }}
                       tickLine={false}
                       axisLine={false}
                     />
@@ -221,7 +221,7 @@ export function InsightsPanel({
                       type="linear"
                       dataKey="sets"
                       name="Recorded sets"
-                      stroke="#77518b"
+                      stroke="var(--fp-chart)"
                       strokeWidth={2}
                       dot={false}
                       isAnimationActive={false}

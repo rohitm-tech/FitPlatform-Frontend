@@ -1,0 +1,218 @@
+/* Coach and venue results the AI coach attaches under a reply. */
+
+.coach-matches {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr));
+  gap: 10px;
+  margin-top: 12px;
+  width: 100%;
+}
+.coach-match {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 16px;
+  border: 1px solid var(--fp-border);
+  border-radius: 12px;
+  background: var(--fp-surface);
+  color: var(--fp-text);
+  min-width: 0;
+}
+.coach-match-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+.coach-match-avatar {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 999px;
+  background: var(--fp-accent-soft);
+  color: var(--fp-accent-ink);
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+.coach-match-title {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  flex: 1;
+}
+.coach-match-title strong {
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+}
+.coach-match-title span {
+  font-size: 12px;
+  color: var(--fp-text-muted);
+  overflow-wrap: anywhere;
+}
+.coach-match-badge {
+  flex: none;
+  align-self: flex-start;
+  font-size: 11px;
+  font-weight: 650;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: var(--fp-ready-bg);
+  color: var(--fp-ready);
+}
+.coach-match-headline {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.4;
+}
+.coach-match-summary {
+  margin: -4px 0 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--fp-text-muted);
+}
+.coach-match-facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.coach-match-facts li {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  border-radius: 6px;
+  background: var(--fp-surface-alt);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+.coach-match-why {
+  border-top: 1px solid var(--fp-border);
+  padding-top: 10px;
+}
+.coach-match-why-label {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 11px;
+  font-weight: 650;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--fp-text-faint);
+}
+.coach-match-why ul {
+  display: grid;
+  gap: 5px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.coach-match-why li {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  font-size: 13px;
+  line-height: 1.4;
+}
+.coach-match-why li svg {
+  flex: none;
+  margin-top: 2px;
+  color: var(--fp-ready);
+}
+.coach-match-why li.is-caution svg {
+  color: var(--fp-attention);
+}
+.coach-match-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: auto;
+}
+.coach-match-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 36px;
+  font-size: 13px;
+  font-weight: 650;
+  color: var(--fp-accent-ink);
+}
+.coach-match-link:hover {
+  text-decoration: underline;
+}
+.coach-match-demo {
+  font-size: 11px;
+  color: var(--fp-text-faint);
+}
+
+.place-matches {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 220px), 1fr));
+  gap: 8px;
+  margin-top: 12px;
+  width: 100%;
+}
+.place-match {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 12px 14px;
+  border: 1px solid var(--fp-border);
+  border-radius: 10px;
+  background: var(--fp-surface);
+  color: var(--fp-text);
+  transition: border-color 0.15s;
+}
+.place-match:hover {
+  border-color: var(--fp-text-muted);
+}
+.place-match strong {
+  font-size: 14px;
+  font-weight: 650;
+}
+.place-match-meta,
+.place-match-facts {
+  font-size: 12px;
+  color: var(--fp-text-muted);
+}
+.place-match-facts {
+  font-variant-numeric: tabular-nums;
+}
+
+.life-log-card {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  max-width: 420px;
+  margin-top: 12px;
+  padding: 12px 14px;
+  border: 1px solid var(--fp-border);
+  border-radius: 10px;
+  background: var(--fp-surface);
+  color: var(--fp-text);
+  transition: border-color 0.15s;
+}
+.life-log-card:hover {
+  border-color: var(--fp-text-muted);
+}
+.life-log-kicker,
+.life-log-open {
+  font-size: 12px;
+  color: var(--fp-text-muted);
+}
+.life-log-card strong {
+  font-size: 14px;
+  font-weight: 650;
+}
+.life-log-summary {
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+}

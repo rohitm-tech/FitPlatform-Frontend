@@ -4,11 +4,16 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { ArrowLeft, ArrowUpRight, Check } from "lucide-react";
 import { api } from "../../services/api";
 import { useAuth } from "../../hooks/useAuth";
+import { ReachMap } from "../../components/discover/ReachMap";
+import { BENGALURU, SPORTS } from "../discover/catalog";
 import "../../coaches.css";
 const choices = [
-  "Strength",
+  ...SPORTS,
+  "Beginners",
+  "Kids",
+  "Race prep",
+  "Competition",
   "Weight management",
-  "Running",
   "Hybrid",
   "Mobility",
   "General fitness",
@@ -25,6 +30,9 @@ export default function CoachProfilePage() {
     bio: "",
     specialties: [] as string[],
     location: "",
+    sport: "Strength",
+    latitude: null as number | null,
+    longitude: null as number | null,
     languages: "English",
     experienceYears: "",
     remoteAvailable: true,
@@ -35,7 +43,8 @@ export default function CoachProfilePage() {
   const [error, setError] = useState("");
   const [saved, setSaved] = useState(false);
   useEffect(() => {
-    if (query.data)
+    if (query.data) {
+      const coordinates = query.data.point?.coordinates;
       setForm({
         ...query.data,
         languages: query.data.languages.join(", "),
@@ -43,7 +52,11 @@ export default function CoachProfilePage() {
           query.data.experienceYears == null
             ? ""
             : String(query.data.experienceYears),
+        sport: query.data.sport || "Strength",
+        latitude: coordinates ? coordinates[1] : null,
+        longitude: coordinates ? coordinates[0] : null,
       });
+    }
   }, [query.data]);
   const field = (key: string, value: any) => {
     setForm((current) => ({ ...current, [key]: value }));
@@ -51,18 +64,18 @@ export default function CoachProfilePage() {
   };
   return (
     <div className="product-page">
-      <Link className="page-back" to="/coach">
-        <ArrowLeft size={16} />
-        Team workspace
-      </Link>
-      {query.data?.isPublic && (
-        <div className="page-top-actions">
+      <div className="page-lead">
+        <Link className="page-back" to="/coach">
+          <ArrowLeft size={16} />
+          Team workspace
+        </Link>
+        {query.data?.isPublic && (
           <Link className="secondary-action" to={`/coaches/${user?._id}`}>
             View public profile
             <ArrowUpRight size={16} />
           </Link>
-        </div>
-      )}
+        )}
+      </div>
       {query.isLoading ? (
         <div className="page-state" role="status">
           Loading your profile…
@@ -91,6 +104,9 @@ export default function CoachProfilePage() {
                   bio: form.bio,
                   specialties: form.specialties,
                   location: form.location,
+                  sport: form.sport,
+                  latitude: form.latitude,
+                  longitude: form.longitude,
                   languages: form.languages
                     .split(",")
                     .map((value) => value.trim())
@@ -189,6 +205,65 @@ export default function CoachProfilePage() {
                 />
               </label>
             </div>
+            <label className="fp-label mt-5" htmlFor="coach-sport">
+              Sport
+            </label>
+            <select
+              id="coach-sport"
+              className="fp-input"
+              value={form.sport}
+              onChange={(e) => field("sport", e.target.value)}
+            >
+              {SPORTS.map((value) => (
+                <option key={value}>{value}</option>
+              ))}
+            </select>
+            <div className="mt-5">
+              <h2>Coaching base</h2>
+              <p className="near-note">
+                {form.latitude == null
+                  ? "No pin yet."
+                  : "Pin set. Save the profile to publish it."}
+              </p>
+              <div className="near-map-wrap near-map-short">
+                <ReachMap
+                  center={{
+                    lat: form.latitude ?? BENGALURU.lat,
+                    lng: form.longitude ?? BENGALURU.lng,
+                  }}
+                  pins={
+                    form.latitude == null || form.longitude == null
+                      ? []
+                      : [
+                          {
+                            id: "base",
+                            lat: form.latitude,
+                            lng: form.longitude,
+                            label: "Coaching base",
+                          },
+                        ]
+                  }
+                  selectedId={form.latitude == null ? undefined : "base"}
+                  onPick={(lat, lng) => {
+                    field("latitude", lat);
+                    field("longitude", lng);
+                  }}
+                />
+              </div>
+              <button
+                type="button"
+                className="secondary-action mt-3"
+                onClick={() => {
+                  if (!navigator.geolocation) return;
+                  navigator.geolocation.getCurrentPosition((position) => {
+                    field("latitude", position.coords.latitude);
+                    field("longitude", position.coords.longitude);
+                  });
+                }}
+              >
+                Use my location
+              </button>
+            </div>
             <label className="fp-label mt-5" htmlFor="coach-languages">
               Languages <span className="font-normal">(comma separated)</span>
             </label>
@@ -201,7 +276,7 @@ export default function CoachProfilePage() {
             {[
               ["remoteAvailable", "Offer online coaching"],
               ["acceptingAthletes", "Accepting new athletes"],
-              ["isPublic", "Publish my profile in Find a coach"],
+              ["isPublic", "Publish my profile in Near you"],
             ].map(([key, label]) => (
               <label className="athlete-choice mt-3" key={key}>
                 <input

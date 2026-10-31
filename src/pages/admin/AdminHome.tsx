@@ -1,4 +1,5 @@
 import LibraryEditor from "../../components/common/LibraryEditor";
+import PricingDesk from "./PricingDesk";
 
 import { useEffect, useState } from "react";
 
@@ -61,9 +62,10 @@ export default function AdminHome() {
         Platform management
       </h1>
       <p className="mt-3 text-sm text-slate-400">
-        Manage trusted access. Every new account begins as an athlete; approve
-        coaches and gym owners here.
+        Set what each plan costs, what it includes, and what the platform keeps.
+        Amounts are in rupees.
       </p>
+      <PricingDesk />
       <label className="fp-label mt-8" htmlFor="account-search">
         Find an account
       </label>
