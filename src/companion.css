@@ -587,6 +587,27 @@
 .upload-control:hover {
   background: var(--fp-surface-alt);
 }
+.voice-control {
+  border: 0;
+  background: transparent;
+  font: inherit;
+}
+.voice-control.listening {
+  color: #c4242a;
+  background: #faeeec;
+}
+.voice-control.listening svg {
+  animation: voice-pulse 1.2s ease-in-out infinite;
+}
+@keyframes voice-pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.6; transform: scale(0.88); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .voice-control.listening svg {
+    animation: none;
+  }
+}
 .ai-workspace .send-message,
 .companion-compact .send-message {
   width: 44px;

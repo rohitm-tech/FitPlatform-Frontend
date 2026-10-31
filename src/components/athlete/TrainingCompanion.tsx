@@ -24,9 +24,12 @@ import {
   Check,
   ArrowLeft,
   MessageSquare,
+  Mic,
+  MicOff,
 } from "lucide-react";
 import { api } from "../../services/api";
 import toast from "react-hot-toast";
+import { useSpeechToText } from "../../hooks/useSpeechToText";
 import "../../companion.css";
 
 type Photo = { mimeType: string; data: string };
@@ -133,6 +136,22 @@ export default function TrainingCompanion({
         ...patch,
       },
     }));
+  // Dictation appends to whatever was already typed: voiceBase is a snapshot
+  // of the draft text taken the moment listening starts, interim results
+  // preview live on top of it, and a final result commits into the new base
+  // so a pause-then-resume keeps building the same message.
+  const voiceBase = useRef("");
+  const { supported: voiceSupported, listening: voiceListening, toggle: toggleVoice } =
+    useSpeechToText((text, isFinal) => {
+      const base = voiceBase.current;
+      const combined = base ? `${base} ${text}` : text;
+      setDraft({ text: combined });
+      if (isFinal) voiceBase.current = combined;
+    });
+  const handleVoiceToggle = () => {
+    if (!voiceListening) voiceBase.current = draft.text;
+    toggleVoice();
+  };
   const thread = useQuery<Thread>({
     queryKey: ["ai-thread", activeId],
     enabled: !!activeId,
@@ -853,8 +872,22 @@ export default function TrainingCompanion({
                   }}
                 />
               </label>
+              {voiceSupported && (
+                <button
+                  type="button"
+                  className={`upload-control voice-control ${voiceListening ? "listening" : ""}`}
+                  title={voiceListening ? "Stop dictation" : "Dictate your message"}
+                  aria-pressed={voiceListening}
+                  aria-label={voiceListening ? "Stop dictation" : "Dictate your message"}
+                  onClick={handleVoiceToggle}
+                >
+                  {voiceListening ? <MicOff size={19} /> : <Mic size={19} />}
+                </button>
+              )}
               <small>
-                {readingPhoto
+                {voiceListening
+                  ? "Listening… tap the mic to stop"
+                  : readingPhoto
                   ? "Preparing photo…"
                   : waiting
                     ? "You can write your next question while the AI replies."
