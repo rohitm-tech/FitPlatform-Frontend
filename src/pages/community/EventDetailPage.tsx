@@ -109,7 +109,7 @@ function note(event: PlatformEvent) {
     return `You're booked at ${rupees(event.rsvp.priceMinor)}. Nothing is charged.`;
   }
   if (event.access === "closed") return "Signup is closed because this event has already started.";
-  if (event.goingCount >= event.capacity && event.rsvp?.status !== "going") return "This event is full.";
+  if (event.goingCount >= event.capacity) return "This event is full.";
   if (event.access === "early" && event.canRsvp) {
     return `Early access is open until ${when(event.publicOpensAt)}. Your price stays ${rupees(event.yourPriceMinor)} after that.`;
   }
