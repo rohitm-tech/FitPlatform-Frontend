@@ -2,6 +2,7 @@ import { useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { api } from "../services/api";
 import { Link } from "react-router-dom";
+import { useAuth } from "../hooks/useAuth";
 import { useReducedMotion } from "framer-motion";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
@@ -387,6 +388,171 @@ function AudienceFeatures() {
     </section>
   );
 }
+type PricingFeature = {
+  key: string;
+  label: string;
+  included: boolean;
+  limit: number | null;
+};
+
+type PublicPricing = {
+  plans: {
+    id: string;
+    name: string;
+    priceMinor: number;
+    interval: string;
+    features: PricingFeature[];
+  }[];
+  coachInviteFeeMinor: number;
+  coachChatFeeMinor: number;
+  coachEarningsFeePercent: number;
+  gymMonthlyMinor: number;
+  marketplaceFeePercent: number;
+};
+
+const rupees = (minor = 0) =>
+  new Intl.NumberFormat("en-IN", {
+    style: "currency",
+    currency: "INR",
+    maximumFractionDigits: 0,
+  }).format(minor / 100);
+
+function featureStatus(feature: PricingFeature) {
+  if (!feature.included) return "Not included";
+  if (feature.limit != null) return `${feature.limit} included`;
+  return "Included";
+}
+
+function Pricing() {
+  const { isAuthenticated, hasRole } = useAuth();
+  const prices = useQuery({
+    queryKey: ["public-pricing"],
+    queryFn: async () => (await api.get("/billing/pricing")).data.data as PublicPricing,
+  });
+  const athlete = isAuthenticated && hasRole("athlete");
+  const data = prices.data;
+  const plans = data?.plans.filter((plan) => plan.id === "free" || plan.id === "premium") ?? [];
+
+  return (
+    <section id="pricing" className="landing-pricing" tabIndex={-1}>
+      <div className="audience-section-heading">
+        <h2>
+          Start free.
+          <br />
+          Subscribe when you want more.
+        </h2>
+        <p>Athletes and coaches join on Free. Amounts are in rupees.</p>
+      </div>
+      {prices.isError && (
+        <p className="landing-pricing-note">
+          Pricing could not be loaded.{" "}
+          <button type="button" onClick={() => prices.refetch()}>
+            Retry
+          </button>
+        </p>
+      )}
+      {data && (
+        <div className="landing-price-grid">
+          {plans.map((plan) => {
+            const subscribe = plan.id === "premium";
+            const to = athlete
+              ? "/settings?section=plan"
+              : subscribe
+                ? "/auth/sign-up?role=athlete&intent=premium"
+                : "/auth/sign-up?role=athlete";
+            return (
+              <article key={plan.id} className={subscribe ? "is-premium" : ""}>
+                <p>{plan.id === "free" ? "For athletes" : "For athletes who want more"}</p>
+                <h3>{plan.name}</h3>
+                <strong>
+                  {rupees(plan.priceMinor)}
+                  <span>{plan.interval === "month" ? " / month" : ""}</span>
+                </strong>
+                <ul>
+                  {plan.features.map((feature) => (
+                    <li key={feature.key} className={feature.included ? "" : "is-off"}>
+                      {feature.included ? <Check size={15} /> : <span className="price-mark" aria-hidden="true" />}
+                      <span>
+                        {feature.label}
+                        <em>{featureStatus(feature)}</em>
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+                <Link className={subscribe ? "landing-primary" : "landing-secondary"} to={to}>
+                  {subscribe ? "Subscribe" : "Start free"}
+                  {subscribe ? <ArrowUpRight size={16} /> : <ArrowRight size={16} />}
+                </Link>
+              </article>
+            );
+          })}
+          <article>
+            <p>For coaches</p>
+            <h3>Free to join</h3>
+            <strong>
+              {rupees(0)}
+              <span> to register</span>
+            </strong>
+            <ul>
+              <li>
+                <Check size={15} />
+                <span>
+                  Invite an athlete
+                  <em>{rupees(data.coachInviteFeeMinor)} when you send it</em>
+                </span>
+              </li>
+              <li>
+                <Check size={15} />
+                <span>
+                  Extra coach conversation
+                  <em>{rupees(data.coachChatFeeMinor)} after the included chats</em>
+                </span>
+              </li>
+              <li>
+                <Check size={15} />
+                <span>
+                  Company share
+                  <em>{data.coachEarningsFeePercent}% of coach earnings</em>
+                </span>
+              </li>
+            </ul>
+            <Link className="landing-secondary" to="/auth/sign-up?role=coach">
+              Join as a coach <ArrowRight size={16} />
+            </Link>
+          </article>
+          <article>
+            <p>For gyms and the marketplace</p>
+            <h3>Installation</h3>
+            <strong>
+              {rupees(data.gymMonthlyMinor)}
+              <span> / month</span>
+            </strong>
+            <ul>
+              <li>
+                <Check size={15} />
+                <span>
+                  Gym installation
+                  <em>Billed every month</em>
+                </span>
+              </li>
+              <li>
+                <Check size={15} />
+                <span>
+                  Marketplace fee
+                  <em>{data.marketplaceFeePercent}% of each sale</em>
+                </span>
+              </li>
+            </ul>
+            <Link className="landing-secondary" to="/auth/sign-up?role=gym_owner">
+              Open a gym <ArrowRight size={16} />
+            </Link>
+          </article>
+        </div>
+      )}
+    </section>
+  );
+}
+
 export default function Landing() {
   const reduced = useReducedMotion();
   const container = useRef<HTMLDivElement>(null);
@@ -543,6 +709,7 @@ export default function Landing() {
         </div>
       </section>
       <AudienceFeatures />
+      <Pricing />
       <section className="landing-close">
         <div>
           <h2>

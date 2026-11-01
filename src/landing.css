@@ -967,3 +967,110 @@
     min-height: 44px;
   }
 }
+
+.landing-pricing {
+  max-width: 1260px;
+  margin: 0 auto;
+  padding: 72px 28px 24px;
+}
+.landing-pricing-note {
+  color: var(--fp-text-muted);
+  font-size: 14px;
+}
+.landing-price-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+  margin-top: 28px;
+}
+.landing-price-grid article {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+  padding: 20px 18px 18px;
+  border: 1px solid var(--fp-border);
+  border-radius: 18px;
+  background: var(--fp-surface);
+}
+.landing-price-grid article.is-premium {
+  border-color: var(--fp-accent);
+}
+.landing-price-grid article > p {
+  margin: 0;
+  color: var(--fp-text-muted);
+  font-size: 12px;
+  font-weight: 650;
+}
+.landing-price-grid h3 {
+  margin: 0;
+  font-size: 22px;
+  letter-spacing: -0.03em;
+}
+.landing-price-grid strong {
+  font-size: 28px;
+  font-weight: 750;
+  letter-spacing: -0.04em;
+  font-variant-numeric: tabular-nums;
+}
+.landing-price-grid strong span {
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0;
+  color: var(--fp-text-muted);
+}
+.landing-price-grid ul {
+  display: grid;
+  gap: 10px;
+  margin: 4px 0 8px;
+  padding: 0;
+  list-style: none;
+}
+.landing-price-grid li {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  font-size: 13px;
+  line-height: 1.4;
+}
+.landing-price-grid li svg {
+  flex: none;
+  margin-top: 2px;
+  color: var(--fp-accent);
+}
+.landing-price-grid li.is-off {
+  color: var(--fp-text-muted);
+}
+.landing-price-grid .price-mark {
+  width: 15px;
+  height: 15px;
+  flex: none;
+}
+.landing-price-grid em {
+  display: block;
+  margin-top: 2px;
+  font-style: normal;
+  color: var(--fp-text-muted);
+  font-size: 12px;
+}
+.landing-price-grid .landing-primary,
+.landing-price-grid .landing-secondary {
+  margin-top: auto;
+  width: 100%;
+  min-height: 44px;
+  gap: 8px;
+  font-size: 13px;
+}
+@media (max-width: 1100px) {
+  .landing-price-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (max-width: 650px) {
+  .landing-pricing {
+    padding: 48px 22px 12px;
+  }
+  .landing-price-grid {
+    grid-template-columns: 1fr;
+  }
+}

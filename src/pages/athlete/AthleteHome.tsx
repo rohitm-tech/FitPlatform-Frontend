@@ -6,6 +6,7 @@ import { Link, useSearchParams } from "react-router-dom";
 import { motion, useReducedMotion } from "framer-motion";
 import { ChevronRight, MessageSquare, Plus, Sparkles, X } from "lucide-react";
 import { MessageThread } from "../../components/common/MessageThread";
+import { AthletePlanStrip } from "../../components/billing/PlanStrip";
 import "../../dashboard.css";
 import { useAuth } from "../../hooks/useAuth";
 import {
@@ -852,6 +853,7 @@ export default function AthleteHome() {
             <CheckInControl records={performance.isSuccess ? records : undefined} />
           </div>
         </header>
+        <AthletePlanStrip />
 
         <div className="dash-layout">
           <div className="dash-board">

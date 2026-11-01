@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import type { FormEvent } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { ArrowRight } from "lucide-react";
 import { useAppDispatch } from "../../store/hooks";
 import { registerUser } from "../../store/slices/authSlice";
@@ -15,8 +15,14 @@ const accountTypes: { id: Role; label: string; hint: string }[] = [
   { id: "gym_owner", label: "Gym", hint: "Run your gym and its members." },
 ];
 
+const joinRoles: Role[] = ["athlete", "coach", "gym_owner"];
+
 export default function SignUp() {
-  const [account, setAccount] = useState<Role>("athlete");
+  const [params] = useSearchParams();
+  const requested = params.get("role");
+  const [account, setAccount] = useState<Role>(
+    joinRoles.includes(requested as Role) ? (requested as Role) : "athlete",
+  );
   const [name, setName] = useState("");
   const [gymName, setGymName] = useState("");
   const [email, setEmail] = useState("");
@@ -75,7 +81,13 @@ export default function SignUp() {
       <div className="auth-form-content">
         <div className="auth-heading">
           <h1>Create your account.</h1>
-          <p>Sign up as an athlete, a coach, or a gym.</p>
+          <p>
+            {account === "coach"
+              ? "Coaches join free. Invite fees and the company share show on your dashboard."
+              : params.get("intent") === "premium" && account === "athlete"
+                ? "You start on Free. Subscribe to Premium from your dashboard after you sign up."
+                : "Athletes and coaches start on Free."}
+          </p>
         </div>
         <form className="auth-form" onSubmit={submit} aria-busy={busy}>
           {error && (

@@ -19,6 +19,7 @@ import { useMyAthletes, useInviteAthlete } from "../../queries/useCoach";
 import { api } from "../../services/api";
 import { MonthCalendar } from "../../components/workout/MonthCalendar";
 import { MessageThread } from "../../components/common/MessageThread";
+import { CoachRateStrip } from "../../components/billing/PlanStrip";
 import "../../dashboard.css";
 export default function CoachHome() {
   const { user } = useAuth();
@@ -148,6 +149,11 @@ export default function CoachHome() {
             <ShieldCheck size={16} />
             AI reviews the evidence. You make the training decision.
           </p>
+          <CoachRateStrip
+            inviteMinor={pricing.data?.coachInviteFeeMinor}
+            chatMinor={pricing.data?.coachChatFeeMinor}
+            feePercent={pricing.data?.coachEarningsFeePercent}
+          />
         </div>
       </header>
       {showInvite && (

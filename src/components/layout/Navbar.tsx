@@ -203,6 +203,7 @@ export const Navbar = () => {
                 </>
               ) : (
                 <>
+                  <a href="/#pricing">Pricing</a>
                   <a href="/#workflow">How it works</a>
                   <a href="/#features">The platform</a>
                   <NavLink to="/coaches">Near you</NavLink>
@@ -363,6 +364,7 @@ export const Navbar = () => {
             </>
           ) : (
             <>
+              <a href="/#pricing">Pricing</a>
               <a href="/#workflow">How it works</a>
               <a href="/#features">The platform</a>
               <Link to="/coaches">Near you</Link>

@@ -703,3 +703,68 @@ button.dash-link:hover:not(:disabled) {
     padding: 18px;
   }
 }
+
+.plan-chip {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin: 0 0 16px;
+  padding: 12px 16px;
+  border: 1px solid var(--fp-border);
+  border-radius: 12px;
+  background: var(--fp-surface);
+}
+.coach-summary-side .plan-chip {
+  margin: 0;
+  padding: 10px 12px;
+  max-width: 420px;
+}
+.plan-chip p {
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 10px;
+  align-items: baseline;
+  min-width: 0;
+}
+.plan-chip strong {
+  font-size: 14px;
+  font-weight: 700;
+}
+.plan-chip span {
+  color: var(--fp-text-muted);
+  font-size: 13px;
+  line-height: 1.4;
+}
+.plan-chip a {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  min-height: 36px;
+  padding: 0 14px;
+  border-radius: 8px;
+  background: var(--fp-accent);
+  color: white;
+  font-size: 13px;
+  font-weight: 650;
+}
+.plan-chip a:hover {
+  color: white;
+  background: var(--fp-accent-press, var(--fp-accent));
+}
+.plan-chip a.is-quiet {
+  background: transparent;
+  color: var(--fp-text);
+  border: 1px solid var(--fp-border);
+}
+.plan-chip a.is-quiet:hover {
+  color: var(--fp-text);
+  background: var(--fp-hover);
+}
+@media (max-width: 640px) {
+  .plan-chip {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
