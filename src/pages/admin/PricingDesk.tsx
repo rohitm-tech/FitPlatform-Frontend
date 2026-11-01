@@ -20,6 +20,7 @@ type Plan = {
 type Pricing = {
   plans: Plan[];
   coachInviteFeeMinor: number;
+  freeCoachChatFeeMinor?: number;
   coachChatFeeMinor: number;
   coachEarningsFeePercent: number;
   gymMonthlyMinor: number;
@@ -352,7 +353,22 @@ export default function PricingDesk() {
                 />
               </label>
               <label>
-                Extra coach conversation (₹)
+                Free plan coach chat (₹)
+                <input
+                  className="fp-input"
+                  type="number"
+                  min={0}
+                  value={toRupees(pricing.freeCoachChatFeeMinor ?? 20000)}
+                  onChange={(event) =>
+                    setPricing({
+                      ...pricing,
+                      freeCoachChatFeeMinor: toMinor(Number(event.target.value || 0)),
+                    })
+                  }
+                />
+              </label>
+              <label>
+                Extra chat after Premium's 3 (₹)
                 <input
                   className="fp-input"
                   type="number"

@@ -48,10 +48,12 @@ export function AthletePlanStrip() {
 
 export function CoachRateStrip({
   inviteMinor,
+  freeChatMinor,
   chatMinor,
   feePercent,
 }: {
   inviteMinor?: number;
+  freeChatMinor?: number;
   chatMinor?: number;
   feePercent?: number;
 }) {
@@ -61,7 +63,9 @@ export function CoachRateStrip({
       <p>
         <strong>Free to coach</strong>
         <span>
-          Invite {rupees(inviteMinor)} · Extra conversation {rupees(chatMinor)} · Company keeps {feePercent}%
+          Invite {rupees(inviteMinor)}
+          {freeChatMinor != null ? ` · Free chat ${rupees(freeChatMinor)}` : ""}
+          {` · Extra chat ${rupees(chatMinor)} · Company keeps ${feePercent}%`}
         </span>
       </p>
     </aside>

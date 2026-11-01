@@ -4,6 +4,7 @@ import { ArrowLeft, MapPin, Globe } from "lucide-react";
 import { api } from "../../services/api";
 import { ListingCard } from "../marketplace/marketplaceShared";
 import { ReachMap } from "../../components/discover/ReachMap";
+import { CoachChatOffer } from "../../components/coach/CoachChatOffer";
 import "../../coaches.css";
 import "../../marketplace.css";
 export default function PublicCoachPage() {
@@ -64,6 +65,7 @@ export default function PublicCoachPage() {
               </div>
             </div>
           </div>
+          {coachId && <CoachChatOffer coachId={coachId} coachName={profile.coachId.name} />}
           {profile.point?.coordinates?.length === 2 && (
             <section className="near-base">
               <h2>Coaching base</h2>

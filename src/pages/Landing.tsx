@@ -404,6 +404,7 @@ type PublicPricing = {
     features: PricingFeature[];
   }[];
   coachInviteFeeMinor: number;
+  freeCoachChatFeeMinor?: number;
   coachChatFeeMinor: number;
   coachEarningsFeePercent: number;
   gymMonthlyMinor: number;
@@ -504,8 +505,15 @@ function Pricing() {
               <li>
                 <Check size={15} />
                 <span>
-                  Extra coach conversation
-                  <em>{rupees(data.coachChatFeeMinor)} after the included chats</em>
+                  Chat on Free
+                  <em>{rupees(data.freeCoachChatFeeMinor ?? 20000)} to talk with a coach</em>
+                </span>
+              </li>
+              <li>
+                <Check size={15} />
+                <span>
+                  Extra coach chat
+                  <em>{rupees(data.coachChatFeeMinor)} after Premium's 3 included chats</em>
                 </span>
               </li>
               <li>
@@ -558,12 +566,13 @@ export default function Landing() {
   const container = useRef<HTMLDivElement>(null);
   const { contextSafe } = useGSAP(
     () => {
-      if (!reduced)
+      if (!reduced) {
         gsap.fromTo(
           ".hero-copy",
           { opacity: 0.7, y: 14 },
           { opacity: 1, y: 0, duration: 0.6, ease: "power3.out" },
         );
+      }
     },
     { scope: container, dependencies: [reduced], revertOnUpdate: true },
   );

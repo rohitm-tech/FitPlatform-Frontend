@@ -326,3 +326,27 @@
     font-size: 12px;
   }
 }
+
+.coach-chat-offer {
+  display: grid;
+  gap: 12px;
+  margin: 16px 0 8px;
+  padding: 18px 20px;
+  border: 1px solid var(--fp-border);
+  border-radius: 16px;
+  background: var(--fp-surface);
+}
+.coach-chat-offer h2,
+.coach-chat-offer p {
+  margin: 0;
+}
+.coach-chat-offer h2 {
+  font-size: 18px;
+}
+.coach-chat-note {
+  color: var(--fp-text-muted);
+  font-size: 12px;
+}
+.coach-chat-offer .message-list {
+  max-height: 280px;
+}

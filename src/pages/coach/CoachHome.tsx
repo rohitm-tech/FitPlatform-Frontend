@@ -151,6 +151,7 @@ export default function CoachHome() {
           </p>
           <CoachRateStrip
             inviteMinor={pricing.data?.coachInviteFeeMinor}
+            freeChatMinor={pricing.data?.freeCoachChatFeeMinor}
             chatMinor={pricing.data?.coachChatFeeMinor}
             feePercent={pricing.data?.coachEarningsFeePercent}
           />
