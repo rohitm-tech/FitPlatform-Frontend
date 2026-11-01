@@ -27,6 +27,7 @@ export default function GymHome() {
   const [error, setError] = useState("");
   const [busy, setBusy] = useState("");
   const [installMinor, setInstallMinor] = useState<number | null>(null);
+  const [name, setName] = useState("");
   const [logoUrl, setLogo] = useState("");
   const load = async () => {
     setError("");

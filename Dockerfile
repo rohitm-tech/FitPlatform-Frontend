@@ -10,7 +10,7 @@ RUN npm ci
 
 COPY . .
 
-ARG VITE_API_BASE_URL=http://localhost:3002/api/v1
+ARG VITE_API_BASE_URL=https://rhythm-api-965239735739.europe-west1.run.app/api/v1
 ENV VITE_API_BASE_URL=$VITE_API_BASE_URL
 
 RUN npm run build

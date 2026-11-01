@@ -172,6 +172,7 @@ export interface CoachAthleteSummary {
   neglectedMuscleGroups: NeglectedMuscleGroup[];
   coachAthleteId: string;
   linkStatus: string;
+  unread: number;
 }
 
 export interface InvitedAthlete {
