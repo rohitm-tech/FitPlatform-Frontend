@@ -58,6 +58,19 @@ export default function EventDetailPage() {
       )}
       {data && (
         <article className="event-detail">
+          {data.images && data.images.length > 0 && (
+            <figure className="event-photo">
+              <img src={data.images[0].url} alt="" style={{ objectPosition: photoFocus(data.title) }} />
+              {data.images[0].credit && <figcaption>{data.images[0].credit}</figcaption>}
+              {data.images.length > 1 && (
+                <div className="event-gallery">
+                  {data.images.slice(1).map((image) => (
+                    <img key={image.url} src={image.url} alt="" />
+                  ))}
+                </div>
+              )}
+            </figure>
+          )}
           <div className="event-story">
             <h1>{data.title}</h1>
             <p className="event-place">{data.place}</p>
@@ -101,6 +114,14 @@ export default function EventDetailPage() {
       )}
     </div>
   );
+}
+
+function photoFocus(title: string) {
+  if (title.startsWith("Lalbagh")) return "center bottom";
+  if (title.startsWith("Cubbon")) return "center 62%";
+  if (title.startsWith("Ulsoor")) return "center 58%";
+  if (title.startsWith("Indiranagar")) return "center 22%";
+  return "center";
 }
 
 function note(event: PlatformEvent) {

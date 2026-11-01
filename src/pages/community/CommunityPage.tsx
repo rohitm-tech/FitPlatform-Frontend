@@ -1,8 +1,9 @@
-import { FormEvent, useEffect, useState } from "react";
+import { FormEvent, ReactNode, useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { Link } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
-import { Search } from "lucide-react";
+import { ImagePlus, Search, X } from "lucide-react";
 import toast from "react-hot-toast";
 import { api } from "../../services/api";
 import "./community.css";
@@ -34,10 +35,26 @@ type AthleteCard = Author & {
 
 type AthleteDirectory = { you: { sports: string[] }; athletes: AthleteCard[] };
 
+type PostMedia = { kind: "image" | "video"; mimeType: string; url: string };
+
+type DraftMedia = PostMedia & { data: string; preview: string; bytes: number };
+
+const MEDIA_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif", "video/mp4", "video/webm"];
+
+function readFile(file: File) {
+  return new Promise<string>((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result).split(",")[1] || "");
+    reader.onerror = () => reject(reader.error);
+    reader.readAsDataURL(file);
+  });
+}
+
 type Post = {
   _id: string;
   body: string;
   createdAt: string;
+  media?: PostMedia[];
   likeCount: number;
   replyCount: number;
   liked: boolean;
@@ -79,12 +96,18 @@ export default function CommunityPage() {
     queryFn: async () => (await api.get("/billing/me")).data.data as PlanProfile,
   });
   const [tab, setTab] = useState<"feed" | "messages">("feed");
+  const [toolbar, setToolbar] = useState<HTMLDivElement | null>(null);
   const premium = billing.data?.plan === "premium";
 
   return (
     <div className="product-page community-page">
-      <h1>Community</h1>
-      <p>A feed and direct messages for athletes. The feed is part of Premium.</p>
+      <header className="community-head">
+        <div>
+          <h1>Community</h1>
+          <p>A feed and direct messages for athletes. The feed is part of Premium.</p>
+        </div>
+        <div className="community-toolbar" ref={setToolbar} />
+      </header>
       {billing.isLoading && <p className="page-state">Loading your plan…</p>}
       {billing.isError && (
         <div className="page-state page-state-error">
@@ -94,28 +117,38 @@ export default function CommunityPage() {
           </button>
         </div>
       )}
-      {billing.data && (
-        <>
-          <div className="community-tabs" role="tablist" aria-label="Community">
-            <button type="button" role="tab" aria-selected={tab === "feed"} onClick={() => setTab("feed")}>
-              Feed
-            </button>
-            <button
-              type="button"
-              role="tab"
-              aria-selected={tab === "messages"}
-              onClick={() => setTab("messages")}
-            >
-              Messages
-            </button>
-          </div>
-          {tab === "feed" ? (
-            premium ? <Feed /> : <LockedFeed />
-          ) : (
-            <Messages premium={Boolean(premium)} />
-          )}
-        </>
-      )}
+      {billing.data &&
+        (tab === "feed" ? (
+          <>
+            {toolbar && createPortal(<CommunityTabs tab={tab} onChange={setTab} />, toolbar)}
+            {premium ? <Feed /> : <LockedFeed />}
+          </>
+        ) : (
+          <Messages
+            premium={Boolean(premium)}
+            toolbar={toolbar}
+            tabs={<CommunityTabs tab={tab} onChange={setTab} />}
+          />
+        ))}
+    </div>
+  );
+}
+
+function CommunityTabs({
+  tab,
+  onChange,
+}: {
+  tab: "feed" | "messages";
+  onChange: (tab: "feed" | "messages") => void;
+}) {
+  return (
+    <div className="community-tabs" role="tablist" aria-label="Community">
+      <button type="button" role="tab" aria-selected={tab === "feed"} onClick={() => onChange("feed")}>
+        Feed
+      </button>
+      <button type="button" role="tab" aria-selected={tab === "messages"} onClick={() => onChange("messages")}>
+        Messages
+      </button>
     </div>
   );
 }
@@ -133,22 +166,64 @@ function LockedFeed() {
 function Feed() {
   const cache = useQueryClient();
   const [body, setBody] = useState("");
+  const [files, setFiles] = useState<DraftMedia[]>([]);
   const posts = useQuery({
     queryKey: ["community-posts"],
     queryFn: async () => (await api.get("/community/posts")).data.data.posts as Post[],
   });
   const publish = useMutation({
-    mutationFn: async (text: string) => (await api.post("/community/posts", { body: text })).data.data as Post,
+    mutationFn: async () =>
+      (
+        await api.post("/community/posts", {
+          body: body.trim(),
+          media: files.map(({ mimeType, data }) => ({ mimeType, data })),
+        })
+      ).data.data as Post,
     onSuccess: async () => {
       setBody("");
+      setFiles([]);
       await cache.invalidateQueries({ queryKey: ["community-posts"] });
     },
   });
 
+  async function addFiles(list: FileList | null) {
+    if (!list) return;
+    const next = [...files];
+    for (const file of Array.from(list)) {
+      if (next.length >= 4) {
+        toast.error("You can add up to 4 photos or videos.");
+        break;
+      }
+      if (!MEDIA_TYPES.includes(file.type)) {
+        toast.error("Use a JPEG, PNG, WebP, GIF, MP4, or WebM file.");
+        continue;
+      }
+      if (file.size > 4 * 1024 * 1024) {
+        toast.error("Each photo or video must be 4 MB or smaller.");
+        continue;
+      }
+      const total = next.reduce((sum, item) => sum + item.bytes, 0) + file.size;
+      if (total > 6 * 1024 * 1024) {
+        toast.error("Keep photos and videos under 6 MB together.");
+        break;
+      }
+      const data = await readFile(file);
+      next.push({
+        kind: file.type.startsWith("video/") ? "video" : "image",
+        mimeType: file.type,
+        url: "",
+        data,
+        preview: `data:${file.type};base64,${data}`,
+        bytes: file.size,
+      });
+    }
+    setFiles(next);
+  }
+
   const submit = (event: FormEvent) => {
     event.preventDefault();
-    if (!body.trim() || publish.isPending) return;
-    publish.mutate(body.trim());
+    if ((!body.trim() && files.length === 0) || publish.isPending) return;
+    publish.mutate();
   };
 
   return (
@@ -162,9 +237,48 @@ function Feed() {
           onChange={(event) => setBody(event.target.value)}
           placeholder="A session, a route, or a question for other athletes"
         />
-        <button className="primary-action" type="submit" disabled={!body.trim() || publish.isPending}>
-          {publish.isPending ? "Posting…" : "Post"}
-        </button>
+        {files.length > 0 && (
+          <ul className="composer-picks">
+            {files.map((file, index) => (
+              <li key={`${file.mimeType}-${index}`}>
+                {file.kind === "video" ? (
+                  <video src={file.preview} muted />
+                ) : (
+                  <img src={file.preview} alt="" />
+                )}
+                <button
+                  type="button"
+                  aria-label="Remove attachment"
+                  onClick={() => setFiles((current) => current.filter((_, item) => item !== index))}
+                >
+                  <X size={14} />
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+        <div className="composer-bar">
+          <label className="media-add">
+            <ImagePlus size={18} aria-hidden="true" />
+            Photo or video
+            <input
+              type="file"
+              accept={MEDIA_TYPES.join(",")}
+              multiple
+              onChange={(event) => {
+                void addFiles(event.target.files);
+                event.target.value = "";
+              }}
+            />
+          </label>
+          <button
+            className="primary-action"
+            type="submit"
+            disabled={(!body.trim() && files.length === 0) || publish.isPending}
+          >
+            {publish.isPending ? "Posting…" : "Post"}
+          </button>
+        </div>
         {publish.isError && (
           <p className="field-error" role="alert">
             {failure(publish.error, "That post could not be published.")}
@@ -252,7 +366,18 @@ function PostCard({ post }: { post: Post }) {
           <time dateTime={post.createdAt}>{when(post.createdAt)}</time>
         </div>
       </header>
-      <p>{post.body}</p>
+      {post.body && <p>{post.body}</p>}
+      {post.media && post.media.length > 0 && (
+        <div className="feed-media">
+          {post.media.map((item) =>
+            item.kind === "video" ? (
+              <video key={item.url} src={item.url} controls preload="metadata" aria-label={`Video from ${post.author.name}`} />
+            ) : (
+              <img key={item.url} src={item.url} alt={post.body ? "" : `Photo from ${post.author.name}`} />
+            ),
+          )}
+        </div>
+      )}
       <div className="feed-actions">
         <button
           type="button"
@@ -317,7 +442,15 @@ function PostCard({ post }: { post: Post }) {
   );
 }
 
-function Messages({ premium }: { premium: boolean }) {
+function Messages({
+  premium,
+  tabs,
+  toolbar,
+}: {
+  premium: boolean;
+  tabs: ReactNode;
+  toolbar: HTMLDivElement | null;
+}) {
   const cache = useQueryClient();
   const [active, setActive] = useState("");
   const [compose, setCompose] = useState<AthleteCard | null>(null);
@@ -363,10 +496,31 @@ function Messages({ premium }: { premium: boolean }) {
     setCompose(athlete);
   }
 
-  return (
-    <div className="messages-shell">
-      {premium && (
-        <div className="event-tools">
+  const toolbarControls = (
+    <>
+      {tabs}
+        {premium && yours.length > 0 && (
+          <div className="choice-row" role="group" aria-label="Filter by sport">
+            <button type="button" aria-pressed={sport === ""} onClick={() => setSport("")}>
+              All
+            </button>
+            {yours.map((name) => (
+              <button
+                key={name}
+                type="button"
+                aria-pressed={sport === name}
+                onClick={() => {
+                  setSport(name);
+                  setActive("");
+                  setCompose(null);
+                }}
+              >
+                {name}
+              </button>
+            ))}
+          </div>
+        )}
+        {premium && (
           <label className="explore-search">
             <Search size={16} aria-hidden="true" />
             <input
@@ -384,29 +538,13 @@ function Messages({ premium }: { premium: boolean }) {
               }}
             />
           </label>
-          {yours.length > 0 && (
-            <div className="choice-row" role="group" aria-label="Filter by sport">
-              <button type="button" aria-pressed={sport === ""} onClick={() => setSport("")}>
-                All
-              </button>
-              {yours.map((name) => (
-                <button
-                  key={name}
-                  type="button"
-                  aria-pressed={sport === name}
-                  onClick={() => {
-                    setSport(name);
-                    setActive("");
-                    setCompose(null);
-                  }}
-                >
-                  {name}
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
-      )}
+        )}
+    </>
+  );
+
+  return (
+    <div className="messages-shell">
+      {toolbar && createPortal(toolbarControls, toolbar)}
       <div className="messages-layout">
         <aside>
           <h2>Conversations</h2>
@@ -651,6 +789,7 @@ function FirstMessage({
 function Conversation({ threadId, onSent }: { threadId: string; onSent: () => void }) {
   const cache = useQueryClient();
   const [body, setBody] = useState("");
+  const list = useRef<HTMLOListElement>(null);
   const thread = useQuery({
     queryKey: ["community-thread", threadId],
     queryFn: async () =>
@@ -668,6 +807,11 @@ function Conversation({ threadId, onSent }: { threadId: string; onSent: () => vo
       onSent();
     },
   });
+
+  useEffect(() => {
+    const node = list.current;
+    if (node) node.scrollTop = node.scrollHeight;
+  }, [thread.data?.messages]);
 
   if (thread.isLoading) return <p className="page-state">Loading the conversation…</p>;
   if (thread.isError) {
@@ -687,7 +831,8 @@ function Conversation({ threadId, onSent }: { threadId: string; onSent: () => vo
         <Avatar name={thread.data?.other.name || "Athlete"} />
         <h2>{thread.data?.other.name}</h2>
       </header>
-      <ol>
+      <ol ref={list}>
+        <li className="conversation-spacer" aria-hidden="true" />
         {thread.data?.messages.map((message) => (
           <li key={message._id} className={message.mine ? "mine" : ""}>
             <p>{message.body}</p>

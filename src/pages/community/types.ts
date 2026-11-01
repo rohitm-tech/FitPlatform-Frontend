@@ -3,6 +3,7 @@ export type PlatformEvent = {
   title: string;
   summary: string;
   place: string;
+  images?: { url: string; credit: string }[];
   startsAt: string;
   endsAt: string;
   capacity: number;

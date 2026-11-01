@@ -46,8 +46,15 @@ export default function EventsPage() {
 
   return (
     <div className="product-page events-page">
-      <h1>Events</h1>
+      <h1 className="sr-only">Events</h1>
       <div className="event-tools">
+        <div className="choice-row" role="group" aria-label="Filter events">
+          {FILTERS.map(([id, label]) => (
+            <button key={id} type="button" aria-pressed={filter === id} onClick={() => setFilter(id)}>
+              {label}
+            </button>
+          ))}
+        </div>
         <label className="explore-search">
           <Search size={16} aria-hidden="true" />
           <input
@@ -58,13 +65,6 @@ export default function EventsPage() {
             onChange={(event) => setQuery(event.target.value)}
           />
         </label>
-        <div className="choice-row" role="group" aria-label="Filter events">
-          {FILTERS.map(([id, label]) => (
-            <button key={id} type="button" aria-pressed={filter === id} onClick={() => setFilter(id)}>
-              {label}
-            </button>
-          ))}
-        </div>
       </div>
       {events.isLoading && <p className="page-state">Loading events…</p>}
       {events.isError && (
@@ -118,9 +118,12 @@ function EventCard({ event }: { event: PlatformEvent }) {
   const tone = statusTone(event);
   return (
     <Link
-      className={`event-row${past ? " is-past" : ""}`}
+      className={`event-row${past ? " is-past" : ""}${event.images?.[0] ? " has-photo" : ""}`}
       to={`/events/${event._id}`}
     >
+      {event.images?.[0] && (
+        <img className="event-thumb" src={event.images[0].url} alt="" />
+      )}
       <time className="event-stamp" dateTime={event.startsAt}>
         <span>{stamp.day}</span>
         <small>{stamp.month}</small>

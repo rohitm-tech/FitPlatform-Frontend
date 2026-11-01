@@ -157,7 +157,19 @@ export function DayLogBoard() {
     <section className="work-panel log-board">
       <div className="section-heading">
         <h2>Your logs</h2>
-        <span className="status-pill">Food, water, body, recovery</span>
+        <div className="platform-tabs" role="tablist" aria-label="How far back">
+          {RANGES.map(([key, label]) => (
+            <button
+              key={key}
+              type="button"
+              role="tab"
+              aria-selected={range === key}
+              onClick={() => setRange(key)}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
       </div>
       <div className="panel-body">
         <div className="log-board-filters">
@@ -169,19 +181,6 @@ export function DayLogBoard() {
                 role="tab"
                 aria-selected={kind === key}
                 onClick={() => setKind(key)}
-              >
-                {label}
-              </button>
-            ))}
-          </div>
-          <div className="platform-tabs" role="tablist" aria-label="How far back">
-            {RANGES.map(([key, label]) => (
-              <button
-                key={key}
-                type="button"
-                role="tab"
-                aria-selected={range === key}
-                onClick={() => setRange(key)}
               >
                 {label}
               </button>
@@ -213,6 +212,27 @@ export function DayLogBoard() {
   );
 }
 
+const MEAL_ORDER = ["breakfast", "snack", "lunch", "dinner", "supper"];
+
+function mealGroups(foods: FoodEntry[]) {
+  const groups = new Map<string, FoodEntry[]>();
+  for (const food of foods) {
+    const meal = food.meal || "Food";
+    const list = groups.get(meal) || [];
+    list.push(food);
+    groups.set(meal, list);
+  }
+  return [...groups.entries()]
+    .sort((a, b) => {
+      const rank = (meal: string) => {
+        const index = MEAL_ORDER.indexOf(meal.toLowerCase());
+        return index === -1 ? MEAL_ORDER.length : index;
+      };
+      return rank(a[0]) - rank(b[0]);
+    })
+    .map(([meal, items]) => ({ meal, items }));
+}
+
 function DayCard({
   date,
   log,
@@ -229,85 +249,113 @@ function DayCard({
   const showBody = kind === "all" || kind === "body";
   const showRecovery = kind === "all" || kind === "recovery";
   const foods = log?.foods || [];
-  const meta = [
-    showFood ? calorieLabel(foods) : null,
-    showWater && log?.waterMl ? litres(log.waterMl) : null,
-  ]
-    .filter(Boolean)
-    .join(" · ");
+  const calories = showFood ? calorieLabel(foods) : null;
+  const water = showWater && log?.waterMl ? litres(log.waterMl) : null;
+  const sleep = showRecovery ? sleepLabel(recovery?.sleepMinutes) : null;
+  const steps = showRecovery && recovery?.steps != null ? `${recovery.steps.toLocaleString("en-IN")} steps` : null;
+  const facts = [
+    calories ? { label: "Food", value: calories } : null,
+    water ? { label: "Water", value: water } : null,
+    sleep ? { label: "Sleep", value: sleep } : null,
+    steps ? { label: "Steps", value: steps.replace(" steps", "") } : null,
+  ].filter(Boolean) as { label: string; value: string }[];
+  const recoveryExtra = showRecovery && recovery
+    ? [
+        recovery.hrvMs != null ? { label: "HRV", value: `${recovery.hrvMs} ms` } : null,
+        recovery.restingHeartRate != null ? { label: "Resting heart rate", value: `${recovery.restingHeartRate} bpm` } : null,
+        recovery.fatigue != null ? { label: "Fatigue", value: `${recovery.fatigue} of 10` } : null,
+        recovery.soreness != null ? { label: "Soreness", value: `${recovery.soreness} of 10` } : null,
+        recovery.notes ? { label: "Note", value: recovery.notes } : null,
+      ].filter(Boolean) as { label: string; value: string }[]
+    : [];
+  const bodyLines = showBody
+    ? [
+        log?.weightKg != null ? { label: "Weight", value: `${log.weightKg} kg` } : null,
+        log?.mood != null ? { label: "Mood", value: `${log.mood} of 5` } : null,
+        log?.energy != null ? { label: "Energy", value: `${log.energy} of 5` } : null,
+        log?.stress != null ? { label: "Stress", value: `${log.stress} of 5` } : null,
+        log?.note ? { label: "Note", value: log.note } : null,
+      ].filter(Boolean) as { label: string; value: string }[]
+    : [];
 
   return (
     <article className="log-day">
       <header>
         <h3>{labelDate(date)}</h3>
-        {meta && <span className="log-day-meta">{meta}</span>}
+        {facts.length > 0 && (
+          <dl className="log-day-facts">
+            {facts.map((fact) => (
+              <div key={fact.label}>
+                <dt>{fact.label}</dt>
+                <dd>{fact.value}</dd>
+              </div>
+            ))}
+          </dl>
+        )}
       </header>
-      <ul className="log-entries">
-        {showFood &&
-          foods.map((food) => {
-            const line = foodText(food);
-            return (
-              <li key={food._id}>
-                <span className="log-entry-kind">{food.meal}</span>
-                <span className={food.calories == null ? "log-missing" : ""}>{line.name}</span>
+      {showFood &&
+        mealGroups(foods).map((group) => (
+          <section key={group.meal} className="log-meal">
+            <h4>{group.meal}</h4>
+            <ul>
+              {group.items.map((food) => {
+                const line = foodText(food);
+                return (
+                  <li key={food._id}>
+                    <span>{line.name}</span>
+                    <span className={food.calories == null ? "log-missing" : "log-entry-value"}>{line.value}</span>
+                  </li>
+                );
+              })}
+            </ul>
+          </section>
+        ))}
+      {showWater && !!log?.waterMl && (
+        <section className="log-meal">
+          <h4>Water</h4>
+          <ul>
+            <li>
+              <span>{litres(log.waterMl)}</span>
+              <span className="log-entry-value">{log.waterMl.toLocaleString("en-IN")} ml</span>
+            </li>
+          </ul>
+        </section>
+      )}
+      {bodyLines.length > 0 && (
+        <section className="log-meal">
+          <h4>Body</h4>
+          <ul>
+            {bodyLines.map((line) => (
+              <li key={line.label}>
+                <span>{line.label}</span>
                 <span className="log-entry-value">{line.value}</span>
               </li>
-            );
-          })}
-        {showWater && !!log?.waterMl && (
-          <li>
-            <span className="log-entry-kind">Water</span>
-            <span>{litres(log.waterMl)}</span>
-            <span className="log-entry-value">{log.waterMl.toLocaleString("en-IN")} ml</span>
-          </li>
-        )}
-        {showBody && log?.weightKg != null && (
-          <li>
-            <span className="log-entry-kind">Weight</span>
-            <span>{log.weightKg} kg</span>
-            <span />
-          </li>
-        )}
-        {showBody && log?.mood != null && (
-          <li>
-            <span className="log-entry-kind">Mood</span>
-            <span>{log.mood}/5</span>
-            <span className="log-entry-value">
-              {[log.energy != null ? `Energy ${log.energy}/5` : null, log.stress != null ? `Stress ${log.stress}/5` : null]
-                .filter(Boolean)
-                .join(" · ")}
-            </span>
-          </li>
-        )}
-        {showBody && log?.mood == null && (log?.energy != null || log?.stress != null) && (
-          <li>
-            <span className="log-entry-kind">Body</span>
-            <span>
-              {[log?.energy != null ? `Energy ${log.energy}/5` : null, log?.stress != null ? `Stress ${log.stress}/5` : null]
-                .filter(Boolean)
-                .join(" · ")}
-            </span>
-            <span />
-          </li>
-        )}
-        {showBody && log?.note && (
-          <li>
-            <span className="log-entry-kind">Note</span>
-            <span>{log.note}</span>
-            <span />
-          </li>
-        )}
-        {showRecovery && recovery && recoveryLines(recovery).length > 0 && (
-          <li>
-            <span className="log-entry-kind">Recovery</span>
-            <span>
-              {recoveryLines(recovery).join(" · ")}
-              {recovery.source === "demo" ? " · Demo" : ""}
-            </span>
-            <span className="log-entry-value">{recovery.sourceLabel || ""}</span>
-          </li>
-        )}
-      </ul>
+            ))}
+          </ul>
+        </section>
+      )}
+      {showRecovery && recovery && (recovery.source === "demo" || recovery.sourceLabel) && recoveryExtra.length === 0 && (
+        <p className="log-source">{recovery.source === "demo" ? "Demo reading" : recovery.sourceLabel}</p>
+      )}
+      {showRecovery && recovery && recoveryExtra.length > 0 && (
+        <section className="log-meal">
+          <h4>Recovery</h4>
+          <ul>
+            {recoveryExtra.map((line) => (
+              <li key={line.label}>
+                <span>{line.label}</span>
+                <span className="log-entry-value">{line.value}</span>
+              </li>
+            ))}
+            {(recovery.source === "demo" || recovery.sourceLabel) && (
+              <li>
+                <span>Source</span>
+                <span className="log-entry-value">{recovery.source === "demo" ? "Demo" : recovery.sourceLabel}</span>
+              </li>
+            )}
+          </ul>
+        </section>
+      )}
     </article>
   );
 }

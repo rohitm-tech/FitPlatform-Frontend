@@ -87,6 +87,7 @@ export default function EventsDesk() {
   const [editing, setEditing] = useState("");
   const [rsvps, setRsvps] = useState<Rsvp[]>([]);
   const [error, setError] = useState("");
+  const [photos, setPhotos] = useState<{ mimeType: string; data: string; preview: string }[]>([]);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
 
@@ -119,8 +120,30 @@ export default function EventsDesk() {
   const edit = (event: AdminEvent) => {
     setEditing(event._id);
     setDraft(fromEvent(event));
+    setPhotos([]);
     loadRsvps(event._id);
   };
+
+  async function addPhotos(list: FileList | null) {
+    if (!list) return;
+    const next = [...photos];
+    for (const file of Array.from(list)) {
+      if (next.length >= 4) break;
+      if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) continue;
+      if (file.size > 4 * 1024 * 1024) {
+        setError("Each photo must be 4 MB or smaller.");
+        continue;
+      }
+      const data = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(String(reader.result).split(",")[1] || "");
+        reader.onerror = () => reject(reader.error);
+        reader.readAsDataURL(file);
+      });
+      next.push({ mimeType: file.type, data, preview: `data:${file.type};base64,${data}` });
+    }
+    setPhotos(next);
+  }
 
   const save = async (event: FormEvent) => {
     event.preventDefault();
@@ -170,14 +193,19 @@ export default function EventsDesk() {
       fullPriceMinor: full,
       premiumPriceMinor: premium,
       status: draft.status,
+      ...(photos.length
+        ? { photos: photos.map(({ mimeType, data }) => ({ mimeType, data })) }
+        : {}),
     };
     try {
       if (editing) {
         await api.patch(`/events/admin/${editing}`, body);
         toast.success("Event updated");
+        setPhotos([]);
       } else {
         const created = await api.post("/events/admin", body);
         setEditing(created.data.data._id);
+        setPhotos([]);
         toast.success("Event created");
       }
       await load();
@@ -218,6 +246,26 @@ export default function EventsDesk() {
             onChange={(event) => setDraft({ ...draft, summary: event.target.value })}
           />
         </label>
+        <label className="span-2">
+          Photos
+          <input
+            className="fp-input"
+            type="file"
+            accept="image/jpeg,image/png,image/webp"
+            multiple
+            onChange={(event) => {
+              void addPhotos(event.target.files);
+              event.target.value = "";
+            }}
+          />
+        </label>
+        {photos.length > 0 && (
+          <div className="span-2 event-photo-picks">
+            {photos.map((photo) => (
+              <img key={photo.preview.slice(0, 48)} src={photo.preview} alt="" />
+            ))}
+          </div>
+        )}
         <label className="span-2">
           Place
           <input

@@ -1524,6 +1524,17 @@ th.num {
   background: var(--fp-surface);
   padding: 16px;
 }
+.events-desk .event-photo-picks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.events-desk .event-photo-picks img {
+  width: 96px;
+  height: 64px;
+  object-fit: cover;
+  border-radius: 8px;
+}
 .events-desk h2 {
   font-size: 17px;
   font-weight: 700;
