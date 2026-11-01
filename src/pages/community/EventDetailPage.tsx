@@ -5,6 +5,7 @@ import toast from "react-hot-toast";
 import { api } from "../../services/api";
 import { rupees, when } from "./format";
 import type { PlatformEvent } from "./types";
+import "./community.css";
 
 function failure(error: unknown, fallback: string) {
   if (axios.isAxiosError(error)) return error.response?.data?.message || fallback;
@@ -57,47 +58,45 @@ export default function EventDetailPage() {
       )}
       {data && (
         <article className="event-detail">
-          <h1>{data.title}</h1>
-          <p>{data.place}</p>
-          <p>{data.summary}</p>
-          <p>
-            <time dateTime={data.startsAt}>{when(data.startsAt)}</time>
-            {" to "}
-            <time dateTime={data.endsAt}>{when(data.endsAt)}</time>
-          </p>
-          <p>{places === 0 ? "Full" : `${places} of ${data.capacity} places left`}</p>
-          <div className="price-pair">
-            <span>
-              Premium <strong>{rupees(data.premiumPriceMinor)}</strong>
-            </span>
-            <span>
-              Full <strong>{rupees(data.fullPriceMinor)}</strong>
-            </span>
-            <span>
-              Your price <strong>{rupees(data.yourPriceMinor)}</strong>
-            </span>
+          <div className="event-story">
+            <h1>{data.title}</h1>
+            <p className="event-place">{data.place}</p>
+            <p>
+              <time dateTime={data.startsAt}>{when(data.startsAt)}</time>
+              {" to "}
+              <time dateTime={data.endsAt}>{when(data.endsAt)}</time>
+            </p>
+            <p className="event-summary">{data.summary}</p>
+            <p>{places === 0 ? "This event is full." : `${places} ${places === 1 ? "place" : "places"} left of ${data.capacity}.`}</p>
           </div>
-          <p>{note(data)}</p>
-          {going ? (
-            <button
-              className="secondary-action"
-              type="button"
-              disabled={cancel.isPending}
-              onClick={() => cancel.mutate()}
-            >
-              {cancel.isPending ? "Cancelling…" : "Cancel signup"}
-            </button>
-          ) : (
-            <button
-              className="primary-action"
-              type="button"
-              disabled={!data.canRsvp || book.isPending}
-              onClick={() => book.mutate()}
-            >
-              {book.isPending ? "Booking…" : `Book at ${rupees(data.yourPriceMinor)}`}
-            </button>
-          )}
-          {going && <p>You're going. {rupees(data.rsvp?.priceMinor || 0)} is recorded on this signup.</p>}
+          <aside className="booking-panel">
+            <p className="booking-price">{rupees(data.yourPriceMinor)}</p>
+            {data.yourPriceMinor < data.fullPriceMinor && (
+              <p>Full price {rupees(data.fullPriceMinor)}</p>
+            )}
+            <p className={`event-status is-${data.rsvp?.status === "going" ? "going" : data.access === "early" ? "early" : data.access === "closed" ? "closed" : "open"}`}>
+              {note(data)}
+            </p>
+            {going ? (
+              <button
+                className="secondary-action"
+                type="button"
+                disabled={cancel.isPending}
+                onClick={() => cancel.mutate()}
+              >
+                {cancel.isPending ? "Cancelling…" : "Cancel signup"}
+              </button>
+            ) : (
+              <button
+                className="primary-action"
+                type="button"
+                disabled={!data.canRsvp || book.isPending}
+                onClick={() => book.mutate()}
+              >
+                {book.isPending ? "Booking…" : `Book at ${rupees(data.yourPriceMinor)}`}
+              </button>
+            )}
+          </aside>
         </article>
       )}
     </div>

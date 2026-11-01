@@ -13,19 +13,19 @@
   align-items: center;
 }
 .hero-copy h1 {
-  font-size: clamp(48px, 5.6vw, 78px);
-  line-height: 1.08;
+  max-width: 11em;
+  font-size: clamp(40px, 4.6vw, 64px);
+  line-height: 1.05;
   font-weight: 800;
-  letter-spacing: -0.045em;
-}
-.hero-copy h1 span {
-  color: inherit;
+  letter-spacing: -0.04em;
+  text-wrap: balance;
 }
 .hero-copy > p {
+  max-width: 38em;
   font-size: 17px;
-  line-height: 1.9;
-  color: var(--fp-text-muted);
-  margin-top: 26px;
+  line-height: 1.55;
+  color: var(--fp-text);
+  margin-top: 22px;
 }
 .landing-actions {
   display: flex;
@@ -71,11 +71,16 @@
   color: var(--fp-text);
 }
 .hero-day {
+  position: relative;
+  overflow: clip;
   background: var(--fp-surface);
   border: 1px solid var(--fp-border);
   border-radius: 24px;
   padding: 24px 26px;
   box-shadow: 0 2px 10px rgba(84, 50, 103, 0.06);
+}
+.hero-noun {
+  display: inline-block;
 }
 .hero-day-top {
   display: flex;
@@ -106,6 +111,28 @@
   gap: 45px;
   color: var(--fp-text);
   font-size: 13px;
+}
+.landing-capabilities span {
+  position: relative;
+  padding-bottom: 2px;
+}
+.landing-capabilities span::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: -8px;
+  width: 100%;
+  height: 2px;
+  background: var(--fp-accent);
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform 0.32s cubic-bezier(0.23, 1, 0.32, 1);
+}
+.landing-capabilities span.is-live {
+  color: var(--fp-accent-ink);
+}
+.landing-capabilities span.is-live::after {
+  transform: scaleX(1);
 }
 .landing-capabilities a {
   margin-left: auto;
@@ -221,7 +248,9 @@
   align-items: center;
 }
 .ai-conversation-preview {
+  position: relative;
   max-width: 480px;
+  padding-top: 18px;
 }
 .preview-context {
   display: flex;
@@ -340,13 +369,15 @@
 }
 @media (max-width: 900px) {
   .landing-hero {
-    padding-top: 65px;
-    gap: 35px;
+    grid-template-columns: 1fr;
+    padding-top: 48px;
+    gap: 28px;
   }
   .hero-copy h1 {
-    font-size: 53px;
+    font-size: clamp(44px, 6vw, 56px);
   }
   .hero-day {
+    max-width: 460px;
     padding: 21px;
   }
   .landing-workflow {
@@ -372,7 +403,7 @@
     gap: 40px;
   }
   .hero-copy h1 {
-    font-size: clamp(44px, 10vw, 64px);
+    font-size: 34px;
   }
   .hero-copy > p {
     font-size: 15px;
@@ -497,6 +528,11 @@
   }
   .story-progress {
     transform: none !important;
+  }
+  .landing-capabilities span::after,
+  .scene-tell {
+    transition: none;
+    animation: none;
   }
 }
 
@@ -958,6 +994,51 @@
   display: grid;
   gap: 14px;
 }
+.scene-progress {
+  display: none;
+  position: absolute;
+  top: 10px;
+  left: 26px;
+  right: 26px;
+  height: 2px;
+  border-radius: 2px;
+  background: var(--fp-border);
+  pointer-events: none;
+  z-index: 2;
+  overflow: hidden;
+}
+.scene-player.is-sequenced .scene-progress {
+  display: block;
+}
+.scene-progress i {
+  display: block;
+  height: 100%;
+  width: 100%;
+  background: var(--fp-accent);
+  transform: scaleX(0);
+  transform-origin: left center;
+}
+.scene-tell {
+  margin: 0;
+  min-height: 2.9em;
+  font-size: 14px;
+  line-height: 1.45;
+  font-weight: 500;
+  color: var(--fp-text);
+}
+.scene-player.is-sequenced .scene-tell {
+  animation: scene-tell-in 0.42s cubic-bezier(0.23, 1, 0.32, 1) both;
+}
+@keyframes scene-tell-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
 .scene-stage {
   position: relative;
   min-height: 220px;
@@ -991,12 +1072,19 @@
   height: 36px;
   border-radius: 50%;
   border: 1px solid var(--fp-border);
-  display: grid;
-  place-items: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   flex: none;
+  line-height: 0;
   color: var(--fp-accent-ink);
   font-size: 11px;
   font-weight: 750;
+}
+.scene-mark svg {
+  display: block;
+  width: 18px;
+  height: 18px;
 }
 .scene-head strong {
   display: block;
@@ -1004,7 +1092,7 @@
   font-weight: 750;
   letter-spacing: -0.02em;
 }
-.scene-head span {
+.scene-head div > span {
   display: block;
   margin-top: 2px;
   font-size: 12px;

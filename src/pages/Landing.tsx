@@ -1,4 +1,5 @@
 import { useRef, useState } from "react";
+import { flushSync } from "react-dom";
 import { useQuery } from "@tanstack/react-query";
 import { api } from "../services/api";
 import { Link } from "react-router-dom";
@@ -30,8 +31,9 @@ import "../landing.css";
 const heroSlides: SceneSlide[] = [
   {
     id: "fitbit",
-    label: "Fitbit export",
-    hold: 2.6,
+    label: "Recovery",
+    tell: "Sleep and heart rate arrive as a dated Fitbit export.",
+    hold: 5.5,
     content: (
       <>
         <div className="beat scene-head">
@@ -59,8 +61,9 @@ const heroSlides: SceneSlide[] = [
   },
   {
     id: "hero-ai",
-    label: "AI chat",
-    hold: 3.4,
+    label: "Companion",
+    tell: "The companion reads that export and says whether to keep the session.",
+    hold: 6.5,
     content: (
       <>
         <div className="beat demo-msg from-you">
@@ -80,7 +83,8 @@ const heroSlides: SceneSlide[] = [
   {
     id: "hero-coach",
     label: "Coach",
-    hold: 3.4,
+    tell: "Your coach sees the same day. The plan changes only after they approve it.",
+    hold: 7,
     content: (
       <>
         <div className="beat demo-msg from-you">
@@ -723,20 +727,43 @@ function Pricing() {
   );
 }
 
+const heroNouns = ["workout", "sleep", "calories", "food"];
+
 export default function Landing() {
   const reduced = useReducedMotion();
   const container = useRef<HTMLDivElement>(null);
+  const nounRef = useRef<HTMLSpanElement>(null);
+  const nounIndex = useRef(0);
+  const [heroBeat, setHeroBeat] = useState(-1);
+  const [noun, setNoun] = useState(0);
   const { contextSafe } = useGSAP(
     () => {
-      if (!reduced) {
-        gsap.fromTo(
-          ".hero-copy",
-          { opacity: 0.7, y: 14 },
-          { opacity: 1, y: 0, duration: 0.6, ease: "power3.out" },
-        );
-      }
+      const el = nounRef.current;
+      if (!el) return;
+      const media = gsap.matchMedia();
+      const swap = (index: number) => {
+        nounIndex.current = index;
+        flushSync(() => setNoun(index));
+      };
+      media.add("(prefers-reduced-motion: no-preference)", () => {
+        const tl = gsap.timeline({ repeat: -1 });
+        heroNouns.forEach((_, index) => {
+          const next = (index + 1) % heroNouns.length;
+          tl.to({}, { duration: 2.1 });
+          tl.to(el, { opacity: 0, duration: 0.18, ease: "power3.out" });
+          tl.call(() => swap(next));
+          tl.to(el, { opacity: 1, duration: 0.32, ease: "power3.out" });
+        });
+      });
+      media.add("(prefers-reduced-motion: reduce)", () => {
+        const id = window.setInterval(() => {
+          swap((nounIndex.current + 1) % heroNouns.length);
+        }, 2600);
+        return () => window.clearInterval(id);
+      });
+      return () => media.revert();
     },
-    { scope: container, dependencies: [reduced], revertOnUpdate: true },
+    { scope: container },
   );
   const scrollToWorkflow = contextSafe(
     (event: React.MouseEvent<HTMLAnchorElement>) => {
@@ -755,18 +782,16 @@ export default function Landing() {
       <section className="landing-hero">
         <div className="hero-copy">
           <h1>
-            Your effort.
+            Today’s <span className="hero-noun" ref={nounRef}>{heroNouns[noun]}</span>.
             <br />
-            <span>Clear direction.</span>
+            With your coach.
           </h1>
           <p>
-            Training, recovery and coaching.
-            <br />
-            Finally, in the same conversation.
+            One place for training, recovery, and coaching.
           </p>
           <div className="landing-actions">
             <Link className="landing-primary" to="/auth/sign-up">
-              Find your rhythm <ArrowUpRight size={20} />
+              Start as an athlete <ArrowUpRight size={20} />
             </Link>
             <Link className="landing-secondary" to="/auth/sign-in">
               Explore the demo <ArrowRight size={17} />
@@ -775,23 +800,28 @@ export default function Landing() {
         </div>
         <div
           className="hero-day"
-          aria-label="Illustrative connected training workflow"
+          aria-label="Illustrative day: a recovery export, the companion, then coach approval"
         >
           <div className="hero-day-top">
-            <span>A day in motion</span>
-            <span className="illustration-label">Product preview</span>
+            <span>How one day works</span>
+            <span className="illustration-label">Illustrative</span>
           </div>
           <ScenePlayer
             slides={heroSlides}
             label="Preview scenes"
+            onScene={setHeroBeat}
             footnote="Illustrative preview. Wearable figures are a Fitbit export, not a live connection."
           />
         </div>
       </section>
       <div className="landing-capabilities">
-        <span>For athletes.</span>
-        <span>For coaches.</span>
-        <span>For the whole gym.</span>
+        {["Recovery export", "The companion", "Coach approval"].map(
+          (label, index) => (
+            <span key={label} className={heroBeat === index ? "is-live" : undefined}>
+              {label}
+            </span>
+          ),
+        )}
         <a href="#workflow" onClick={scrollToWorkflow}>
           See how it works <ArrowRight size={16} />
         </a>

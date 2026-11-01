@@ -11,3 +11,14 @@ export const when = (value: string) =>
     timeStyle: "short",
     timeZone: "Asia/Kolkata",
   }).format(new Date(value));
+
+export function eventStamp(value: string) {
+  const date = new Date(value);
+  const part = (options: Intl.DateTimeFormatOptions) =>
+    new Intl.DateTimeFormat("en-IN", { timeZone: "Asia/Kolkata", ...options }).format(date);
+  return {
+    day: part({ day: "numeric" }),
+    month: part({ month: "short" }),
+    weekday: part({ weekday: "short" }),
+  };
+}

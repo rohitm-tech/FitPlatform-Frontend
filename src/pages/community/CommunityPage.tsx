@@ -2,10 +2,37 @@ import { FormEvent, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
+import { Search } from "lucide-react";
 import toast from "react-hot-toast";
 import { api } from "../../services/api";
+import "./community.css";
+
+function initials(name: string) {
+  return name
+    .split(" ")
+    .map((part) => part[0])
+    .filter(Boolean)
+    .slice(0, 2)
+    .join("");
+}
+
+function Avatar({ name }: { name: string }) {
+  return (
+    <span className="person-mark" aria-hidden="true">
+      {initials(name)}
+    </span>
+  );
+}
 
 type Author = { _id: string; name: string };
+
+type AthleteCard = Author & {
+  sports: string[];
+  city: string;
+  shared: string[];
+};
+
+type AthleteDirectory = { you: { sports: string[] }; athletes: AthleteCard[] };
 
 type Post = {
   _id: string;
@@ -55,7 +82,7 @@ export default function CommunityPage() {
   const premium = billing.data?.plan === "premium";
 
   return (
-    <div className="product-page">
+    <div className="product-page community-page">
       <h1>Community</h1>
       <p>A feed and direct messages for athletes. The feed is part of Premium.</p>
       {billing.isLoading && <p className="page-state">Loading your plan…</p>}
@@ -125,7 +152,7 @@ function Feed() {
   };
 
   return (
-    <section aria-label="Feed">
+    <section className="community-column" aria-label="Feed">
       <form className="composer" onSubmit={submit}>
         <label htmlFor="community-post">Share something with the community</label>
         <textarea
@@ -218,9 +245,12 @@ function PostCard({ post }: { post: Post }) {
 
   return (
     <article className="feed-card">
-      <header>
-        <strong>{post.author.name}</strong>
-        <time dateTime={post.createdAt}>{when(post.createdAt)}</time>
+      <header className="feed-person">
+        <Avatar name={post.author.name} />
+        <div>
+          <strong>{post.author.name}</strong>
+          <time dateTime={post.createdAt}>{when(post.createdAt)}</time>
+        </div>
       </header>
       <p>{post.body}</p>
       <div className="feed-actions">
@@ -230,7 +260,8 @@ function PostCard({ post }: { post: Post }) {
           disabled={like.isPending}
           onClick={() => like.mutate()}
         >
-          {liked ? "Liked" : "Like"} · {likeCount}
+          {liked ? "Liked" : "Like"}
+          <span>{likeCount}</span>
         </button>
         <button type="button" aria-expanded={open} onClick={() => setOpen((value) => !value)}>
           {replyCount === 1 ? "1 reply" : `${replyCount} replies`}
@@ -245,9 +276,12 @@ function PostCard({ post }: { post: Post }) {
             </button>
           )}
           {replies.data?.map((item) => (
-            <div key={item._id}>
-              <strong>{item.author.name}</strong>
-              <p>{item.body}</p>
+            <div className="reply" key={item._id}>
+              <Avatar name={item.author.name} />
+              <div>
+                <strong>{item.author.name}</strong>
+                <p>{item.body}</p>
+              </div>
             </div>
           ))}
           <form
@@ -286,91 +320,280 @@ function PostCard({ post }: { post: Post }) {
 function Messages({ premium }: { premium: boolean }) {
   const cache = useQueryClient();
   const [active, setActive] = useState("");
+  const [compose, setCompose] = useState<AthleteCard | null>(null);
+  const [search, setSearch] = useState("");
+  const [q, setQ] = useState("");
+  const [sport, setSport] = useState("");
   const threads = useQuery({
     queryKey: ["community-threads"],
     queryFn: async () => (await api.get("/community/threads")).data.data.threads as ThreadSummary[],
   });
-
-  useEffect(() => {
-    if (!active && threads.data?.[0]) setActive(threads.data[0]._id);
-  }, [active, threads.data]);
-
-  return (
-    <div className="messages-layout">
-      <aside>
-        {premium && <AthleteSearch onStarted={(threadId) => setActive(threadId)} />}
-        {threads.isLoading && <p className="page-state">Loading messages…</p>}
-        {threads.isError && (
-          <div className="page-state page-state-error">
-            <h2>Messages could not be loaded</h2>
-            <button type="button" onClick={() => threads.refetch()}>
-              Retry
-            </button>
-          </div>
-        )}
-        {threads.data && threads.data.length === 0 && (
-          <p className="empty-copy">
-            {premium
-              ? "Search for an athlete to start a conversation."
-              : "When a premium athlete messages you, the conversation shows up here."}
-          </p>
-        )}
-        <ul className="thread-list">
-          {threads.data?.map((thread) => (
-            <li key={thread._id}>
-              <button
-                type="button"
-                className={thread._id === active ? "is-active" : ""}
-                aria-current={thread._id === active ? "true" : undefined}
-                onClick={() => setActive(thread._id)}
-              >
-                <strong>{thread.other.name}</strong>
-                <span>{thread.preview}</span>
-              </button>
-            </li>
-          ))}
-        </ul>
-      </aside>
-      {active ? (
-        <Conversation
-          threadId={active}
-          onSent={() => cache.invalidateQueries({ queryKey: ["community-threads"] })}
-        />
-      ) : (
-        threads.data &&
-        threads.data.length > 0 && <p className="page-state">Choose a conversation.</p>
-      )}
-    </div>
-  );
-}
-
-function AthleteSearch({ onStarted }: { onStarted: (threadId: string) => void }) {
-  const cache = useQueryClient();
-  const [search, setSearch] = useState("");
-  const [q, setQ] = useState("");
-  const [picked, setPicked] = useState<Author | null>(null);
-  const [body, setBody] = useState("");
+  const directory = useQuery({
+    queryKey: ["community-athletes", q],
+    queryFn: async () =>
+      (await api.get("/community/athletes", { params: q ? { q } : {} })).data.data as AthleteDirectory,
+    enabled: premium,
+  });
 
   useEffect(() => {
     const timer = setTimeout(() => setQ(search.trim()), 250);
     return () => clearTimeout(timer);
   }, [search]);
 
-  const results = useQuery({
-    queryKey: ["community-athletes", q],
-    queryFn: async () =>
-      (await api.get("/community/athletes", { params: { q } })).data.data as Author[],
-    enabled: q.length > 0,
-  });
+  useEffect(() => {
+    if (premium) return;
+    if (!active && threads.data?.[0]) setActive(threads.data[0]._id);
+  }, [premium, active, threads.data]);
+
+  const threadFor = new Map(threads.data?.map((thread) => [thread.other._id, thread._id]) ?? []);
+  const yours = directory.data?.you.sports ?? [];
+  const athletes = (directory.data?.athletes ?? []).filter((athlete) => !sport || athlete.sports.includes(sport));
+  const same = athletes.filter((athlete) => athlete.shared.length > 0);
+  const others = athletes.filter((athlete) => athlete.shared.length === 0);
+  const browsing = premium && !active && !compose;
+
+  function openAthlete(athlete: AthleteCard) {
+    const threadId = threadFor.get(athlete._id);
+    if (threadId) {
+      setCompose(null);
+      setActive(threadId);
+      return;
+    }
+    setActive("");
+    setCompose(athlete);
+  }
+
+  return (
+    <div className="messages-shell">
+      {premium && (
+        <div className="event-tools">
+          <label className="explore-search">
+            <Search size={16} aria-hidden="true" />
+            <input
+              type="search"
+              aria-label="Search athletes"
+              value={search}
+              placeholder="Search by name, sport or city"
+              onChange={(event) => {
+                setSearch(event.target.value);
+                if (event.target.value.trim()) {
+                  setSport("");
+                  setActive("");
+                  setCompose(null);
+                }
+              }}
+            />
+          </label>
+          {yours.length > 0 && (
+            <div className="choice-row" role="group" aria-label="Filter by sport">
+              <button type="button" aria-pressed={sport === ""} onClick={() => setSport("")}>
+                All
+              </button>
+              {yours.map((name) => (
+                <button
+                  key={name}
+                  type="button"
+                  aria-pressed={sport === name}
+                  onClick={() => {
+                    setSport(name);
+                    setActive("");
+                    setCompose(null);
+                  }}
+                >
+                  {name}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+      <div className="messages-layout">
+        <aside>
+          <h2>Conversations</h2>
+          {threads.isLoading && <p className="page-state">Loading messages…</p>}
+          {threads.isError && (
+            <div className="page-state page-state-error">
+              <h2>Messages could not be loaded</h2>
+              <button type="button" onClick={() => threads.refetch()}>
+                Retry
+              </button>
+            </div>
+          )}
+          {threads.data && threads.data.length === 0 && (
+            <p className="empty-copy">
+              {premium
+                ? "Your conversations show up here."
+                : "When a premium athlete messages you, the conversation shows up here."}
+            </p>
+          )}
+          <ul className="thread-list">
+            {threads.data?.map((thread) => (
+              <li key={thread._id}>
+                <button
+                  type="button"
+                  className={thread._id === active ? "is-active" : ""}
+                  aria-current={thread._id === active ? "true" : undefined}
+                  onClick={() => {
+                    setCompose(null);
+                    setActive(thread._id);
+                  }}
+                >
+                  <Avatar name={thread.other.name} />
+                  <span className="thread-copy">
+                    <strong>{thread.other.name}</strong>
+                    <span>{thread.preview}</span>
+                  </span>
+                </button>
+              </li>
+            ))}
+          </ul>
+        </aside>
+        {active ? (
+          <Conversation
+            threadId={active}
+            onSent={() => cache.invalidateQueries({ queryKey: ["community-threads"] })}
+          />
+        ) : compose ? (
+          <FirstMessage
+            athlete={compose}
+            onCancel={() => setCompose(null)}
+            onStarted={(threadId) => {
+              setCompose(null);
+              setActive(threadId);
+            }}
+          />
+        ) : browsing ? (
+          <AthleteDirectory
+            loading={directory.isLoading}
+            error={directory.isError}
+            onRetry={() => directory.refetch()}
+            sport={sport}
+            same={same}
+            others={sport ? [] : others}
+            listed={athletes}
+            threadFor={threadFor}
+            onOpen={openAthlete}
+          />
+        ) : (
+          threads.data && threads.data.length > 0 && <p className="page-state">Choose a conversation.</p>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function AthleteDirectory({
+  loading,
+  error,
+  onRetry,
+  sport,
+  same,
+  others,
+  listed,
+  threadFor,
+  onOpen,
+}: {
+  loading: boolean;
+  error: boolean;
+  onRetry: () => void;
+  sport: string;
+  same: AthleteCard[];
+  others: AthleteCard[];
+  listed: AthleteCard[];
+  threadFor: Map<string, string>;
+  onOpen: (athlete: AthleteCard) => void;
+}) {
+  if (loading) return <p className="page-state">Loading athletes…</p>;
+  if (error) {
+    return (
+      <div className="page-state page-state-error">
+        <h2>Athletes could not be loaded</h2>
+        <button type="button" onClick={onRetry}>
+          Retry
+        </button>
+      </div>
+    );
+  }
+  if (listed.length === 0) {
+    return (
+      <div className="page-state">
+        <h2>No athletes match</h2>
+        <p>Try another name, sport, or city.</p>
+      </div>
+    );
+  }
+  return (
+    <div className="athlete-board">
+      {sport || same.length === 0 ? (
+        <DirectorySection
+          title={sport || "Athletes"}
+          athletes={listed}
+          threadFor={threadFor}
+          onOpen={onOpen}
+        />
+      ) : (
+        <>
+          <DirectorySection title="Same sports" athletes={same} threadFor={threadFor} onOpen={onOpen} />
+          {others.length > 0 && (
+            <DirectorySection title="Other athletes" athletes={others} threadFor={threadFor} onOpen={onOpen} />
+          )}
+        </>
+      )}
+    </div>
+  );
+}
+
+function DirectorySection({
+  title,
+  athletes,
+  threadFor,
+  onOpen,
+}: {
+  title: string;
+  athletes: AthleteCard[];
+  threadFor: Map<string, string>;
+  onOpen: (athlete: AthleteCard) => void;
+}) {
+  return (
+    <section>
+      <h2>{title}</h2>
+      <ul className="directory-list">
+        {athletes.map((athlete) => (
+          <li key={athlete._id} className="directory-row">
+            <Avatar name={athlete.name} />
+            <div className="thread-copy">
+              <strong>{athlete.name}</strong>
+              <span>{athlete.sports.length ? athlete.sports.join(", ") : "Athlete"}</span>
+              {athlete.city && <span>{athlete.city}</span>}
+            </div>
+            <button type="button" onClick={() => onOpen(athlete)}>
+              {threadFor.has(athlete._id) ? "Open" : "Message"}
+            </button>
+          </li>
+        ))}
+      </ul>
+    </section>
+  );
+}
+
+function FirstMessage({
+  athlete,
+  onCancel,
+  onStarted,
+}: {
+  athlete: AthleteCard;
+  onCancel: () => void;
+  onStarted: (threadId: string) => void;
+}) {
+  const cache = useQueryClient();
+  const [body, setBody] = useState("");
   const start = useMutation({
     mutationFn: async () =>
       (
-        await api.post("/community/threads", { athleteId: picked?._id, body: body.trim() })
+        await api.post("/community/threads", { athleteId: athlete._id, body: body.trim() })
       ).data.data as { thread: ThreadSummary },
     onSuccess: async (result) => {
       setBody("");
-      setPicked(null);
-      setSearch("");
       await cache.invalidateQueries({ queryKey: ["community-threads"] });
       onStarted(result.thread._id);
     },
@@ -378,57 +601,38 @@ function AthleteSearch({ onStarted }: { onStarted: (threadId: string) => void })
 
   return (
     <form
-      className="athlete-search"
+      className="composer-panel"
       onSubmit={(event) => {
         event.preventDefault();
-        if (!picked || !body.trim() || start.isPending) return;
+        if (!body.trim() || start.isPending) return;
         start.mutate();
       }}
     >
-      <label htmlFor="athlete-search">Message an athlete</label>
-      <input
-        id="athlete-search"
-        className="fp-input"
-        value={search}
-        onChange={(event) => {
-          setSearch(event.target.value);
-          setPicked(null);
-        }}
-        placeholder="Search by name"
-        autoComplete="off"
+      <header className="feed-person">
+        <Avatar name={athlete.name} />
+        <div>
+          <h2>{athlete.name}</h2>
+          <p>{athlete.sports.length ? athlete.sports.join(", ") : "Athlete"}</p>
+        </div>
+      </header>
+      <label className="sr-only" htmlFor="first-message">
+        First message to {athlete.name}
+      </label>
+      <textarea
+        id="first-message"
+        maxLength={2000}
+        value={body}
+        onChange={(event) => setBody(event.target.value)}
+        placeholder="Write the first message"
       />
-      {results.data && results.data.length > 0 && !picked && (
-        <ul>
-          {results.data.map((athlete) => (
-            <li key={athlete._id}>
-              <button type="button" onClick={() => setPicked(athlete)}>
-                {athlete.name}
-              </button>
-            </li>
-          ))}
-        </ul>
-      )}
-      {q && results.data && results.data.length === 0 && <p>No athlete matches that name.</p>}
-      {picked && (
-        <>
-          <p>
-            To <strong>{picked.name}</strong>
-          </p>
-          <label className="sr-only" htmlFor="first-message">
-            First message
-          </label>
-          <textarea
-            id="first-message"
-            maxLength={2000}
-            value={body}
-            onChange={(event) => setBody(event.target.value)}
-            placeholder="Write the first message"
-          />
-          <button className="primary-action" type="submit" disabled={!body.trim() || start.isPending}>
-            {start.isPending ? "Sending…" : "Send"}
-          </button>
-        </>
-      )}
+      <div className="event-form-actions">
+        <button className="primary-action" type="submit" disabled={!body.trim() || start.isPending}>
+          {start.isPending ? "Sending…" : "Send"}
+        </button>
+        <button className="secondary-action" type="button" onClick={onCancel}>
+          Cancel
+        </button>
+      </div>
       {start.isError && (
         <p className="field-error" role="alert">
           {failure(start.error, "That message could not be sent.")}
@@ -479,7 +683,10 @@ function Conversation({ threadId, onSent }: { threadId: string; onSent: () => vo
 
   return (
     <section className="conversation" aria-label={`Messages with ${thread.data?.other.name}`}>
-      <h2>{thread.data?.other.name}</h2>
+      <header className="feed-person">
+        <Avatar name={thread.data?.other.name || "Athlete"} />
+        <h2>{thread.data?.other.name}</h2>
+      </header>
       <ol>
         {thread.data?.messages.map((message) => (
           <li key={message._id} className={message.mine ? "mine" : ""}>

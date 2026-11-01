@@ -8,6 +8,8 @@ gsap.registerPlugin(useGSAP, ScrollTrigger);
 export type SceneSlide = {
   id: string;
   label: string;
+  /** One sentence that says what this scene is showing. */
+  tell?: string;
   hold?: number;
   content: ReactNode;
 };
@@ -21,10 +23,12 @@ export function ScenePlayer({
   slides,
   label,
   footnote,
+  onScene,
 }: {
   slides: SceneSlide[];
   label: string;
   footnote?: string;
+  onScene?: (index: number) => void;
 }) {
   const rootRef = useRef<HTMLDivElement>(null);
   const tlRef = useRef<gsap.core.Timeline | null>(null);
@@ -36,8 +40,10 @@ export function ScenePlayer({
     if (sceneRef.current === index) return;
     sceneRef.current = index;
     setScene(index);
+    onScene?.(index);
   };
 
+  const holdKey = slides.map((slide) => slide.hold ?? 2.8).join("|");
   const { contextSafe } = useGSAP(
     () => {
       const root = rootRef.current;
@@ -50,6 +56,7 @@ export function ScenePlayer({
 
         const beatsOf = (el: HTMLElement) =>
           gsap.utils.toArray<HTMLElement>(".beat", el);
+        const bar = root.querySelector<HTMLElement>(".scene-progress i");
         const measure = () => {
           let height = 0;
           scenes.forEach((scene) => {
@@ -64,10 +71,12 @@ export function ScenePlayer({
         };
         measure();
 
+        if (bar) gsap.set(bar, { scaleX: 0, transformOrigin: "left center" });
         gsap.set(scenes, { autoAlpha: 0 });
         scenes.forEach((item) => gsap.set(beatsOf(item), { autoAlpha: 0, y: 8 }));
         gsap.set(scenes[0], { autoAlpha: 1 });
         setSequenced(true);
+        onScene?.(0);
 
         const clock = { n: 0 };
         const tl = gsap.timeline({
@@ -89,8 +98,18 @@ export function ScenePlayer({
             tl.set(beats, { autoAlpha: 0, y: 8 });
             tl.to(beats, { autoAlpha: 1, y: 0, duration: 0.42, stagger: 0.08 }, "+=0.02");
           }
-          tl.addLabel(el.dataset.scene || `scene-${index}`);
-          tl.to(clock, { n: index + 1, duration: hold, ease: "none" });
+          const label = el.dataset.scene || `scene-${index}`;
+          tl.addLabel(label);
+          if (bar) {
+            tl.fromTo(
+              bar,
+              { scaleX: 0 },
+              { scaleX: 1, duration: hold, ease: "none" },
+              label,
+            );
+          } else {
+            tl.to(clock, { n: index + 1, duration: hold, ease: "none" });
+          }
         });
         tl.to(scenes[scenes.length - 1], { autoAlpha: 0, duration: 0.28 });
         tl.set(scenes, { autoAlpha: 0 });
@@ -186,7 +205,7 @@ export function ScenePlayer({
       });
       return () => media.revert();
     },
-    { scope: rootRef },
+    { scope: rootRef, dependencies: [holdKey], revertOnUpdate: true },
   );
 
   const choose = contextSafe((index: number) => {
@@ -204,6 +223,14 @@ export function ScenePlayer({
       ref={rootRef}
       className={sequenced ? "scene-player is-sequenced" : "scene-player"}
     >
+      <div className="scene-progress" aria-hidden="true">
+        <i />
+      </div>
+      {sequenced && slides[scene]?.tell && (
+        <p className="scene-tell" key={slides[scene].id}>
+          {slides[scene].tell}
+        </p>
+      )}
       <div className="scene-stage">
         {slides.map((slide, index) => (
           <div
