@@ -82,14 +82,16 @@ export const Navbar = () => {
               ["/admin", "Platform"],
               ["/marketplace", "Marketplace"],
             ]
-          : [
-              ["/athlete", "Dashboard"],
-              ["/athlete/history", "Training"],
-              ["/athlete/companion", "AI coach"],
-              ["/coaches", "Near you"],
-              ["/athlete/explorer", "Muscle explorer"],
-              ["/marketplace", "Marketplace"],
-            ];
+            : [
+                ["/athlete", "Dashboard"],
+                ["/athlete/history", "Training"],
+                ["/athlete/companion", "AI coach"],
+                ["/coaches", "Near you"],
+                ["/community", "Community"],
+                ["/events", "Events"],
+                ["/athlete/explorer", "Muscle explorer"],
+                ["/marketplace", "Marketplace"],
+              ];
   const extra =
     activeRole === "athlete"
       ? []
@@ -157,7 +159,7 @@ export const Navbar = () => {
               {isAuthenticated && !publicPage ? (
                 <>
                   {links.map(([to, label]) => (
-                    <NavLink end key={to} to={to}>
+                    <NavLink end={to !== "/events"} key={to} to={to}>
                       {label}
                     </NavLink>
                   ))}
@@ -338,7 +340,7 @@ export const Navbar = () => {
               </div>
               <RoleSwitcher />
               {links.map(([to, label]) => (
-                <NavLink end key={to} to={to}>
+                <NavLink end={to !== "/events"} key={to} to={to}>
                   {label}
                 </NavLink>
               ))}

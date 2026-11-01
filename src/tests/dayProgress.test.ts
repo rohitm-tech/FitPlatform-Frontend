@@ -185,6 +185,8 @@ it("sums recorded sets only against the assigned exercises", () => {
   expect(setTally(sessions, [log("w1", [{ id: "bench", count: 4 }])])).toEqual({
     assigned: 7,
     recorded: 4,
+    piecesAssigned: 0,
+    piecesRecorded: 0,
   });
   expect(tallyLine(4, 7, true)).toBe("4 sets recorded · 7 sets assigned");
   expect(tallyLine(1, 1, true)).toBe("1 set recorded · 1 set assigned");

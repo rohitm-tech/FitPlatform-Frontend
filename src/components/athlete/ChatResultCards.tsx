@@ -66,7 +66,7 @@ export type ChatCard = ExerciseCard | CoachCard | PlaceCard | LifeCard;
 
 function lifeLogHref(href?: string) {
   if (href && href.startsWith("/") && !href.startsWith("//")) return href;
-  return "/athlete#dash-daylog-title";
+  return "/athlete/recovery";
 }
 
 const initials = (name: string) =>

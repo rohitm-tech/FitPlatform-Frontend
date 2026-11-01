@@ -4,6 +4,7 @@ import type {
   WorkoutLog,
   WorkoutStatus,
 } from "../../types/domain";
+import { formatPrescription, pieceName } from "../../lib/sessionSports";
 
 export type AssignmentKey = "ai" | "you" | "coach" | "unknown";
 export type MoveState = "logged" | "partial" | "open" | "skipped" | "missing";
@@ -194,10 +195,12 @@ export interface MoveRow {
   notes: string;
 }
 
-function prescription(item: WorkoutItem) {
-  const weight =
-    item.targetWeightKg != null ? ` · ${item.targetWeightKg} kg` : "";
-  return `${item.sets} × ${item.reps}${weight}`;
+function samePiece(item: WorkoutItem, entry: WorkoutLog["items"][number]) {
+  const plannedKey = exerciseKey(item.exerciseId);
+  const loggedKey = exerciseKey(entry.exerciseId);
+  if (plannedKey && loggedKey) return plannedKey === loggedKey;
+  if (item.label && entry.label) return item.label === entry.label;
+  return false;
 }
 
 export function moveRows(
@@ -208,14 +211,23 @@ export function moveRows(
   const linked = logs.filter((log) => logWorkoutId(log) === workout._id);
   const hasLog = linked.length > 0;
   return workout.items.map((item) => {
+    const gymPiece = !item.kind || item.kind === "strength";
     const recorded = linked.reduce((sum, log) => {
-      const match = log.items.find(
-        (entry) => exerciseKey(entry.exerciseId) === exerciseKey(item.exerciseId),
-      );
-      return sum + (match?.sets.length ?? 0);
+      const match = log.items.find((entry) => samePiece(item, entry));
+      if (!match) return sum;
+      if (!gymPiece) return sum + (match.sets.length > 0 ? 1 : 0);
+      return sum + match.sets.length;
     }, 0);
     let state: MoveState;
-    if (workout.status === "skipped") state = "skipped";
+    let recordedLabel = "";
+    if (!gymPiece) {
+      if (workout.status === "skipped") state = "skipped";
+      else if (!showSets) state = workout.status === "completed" ? "logged" : "open";
+      else if (recorded > 0) state = "logged";
+      else if (workout.status === "completed") state = "missing";
+      else state = "open";
+      recordedLabel = showSets ? (recorded > 0 ? "Logged" : "Not logged") : "";
+    } else if (workout.status === "skipped") state = "skipped";
     else if (!showSets) state = workout.status === "completed" ? "logged" : "open";
     else if (item.sets > 0 && recorded >= item.sets) state = "logged";
     else if (recorded > 0) state = "partial";
@@ -223,17 +235,19 @@ export function moveRows(
     else if (workout.status === "completed" && hasLog) state = "missing";
     else state = "open";
 
-    const recordedLabel =
-      showSets && (state === "logged" || state === "partial" || state === "missing" || state === "open") && hasLog
-        ? `${recorded} of ${item.sets} sets recorded`
-        : showSets && state === "open"
-          ? `0 of ${item.sets} sets recorded`
-          : "";
+    if (gymPiece) {
+      recordedLabel =
+        showSets && (state === "logged" || state === "partial" || state === "missing" || state === "open") && hasLog
+          ? `${recorded} of ${item.sets} sets recorded`
+          : showSets && state === "open"
+            ? `0 of ${item.sets} sets recorded`
+            : "";
+    }
 
     return {
-      name: exerciseName(item.exerciseId),
+      name: pieceName(item),
       state,
-      prescription: prescription(item),
+      prescription: formatPrescription(item),
       recordedLabel,
       notes: item.notes?.trim() || "",
     };
@@ -243,19 +257,27 @@ export function moveRows(
 export function setTally(workouts: Workout[], logs: WorkoutLog[]) {
   let assigned = 0;
   let recorded = 0;
+  let piecesAssigned = 0;
+  let piecesRecorded = 0;
   for (const workout of workouts) {
     const linked = logs.filter((log) => logWorkoutId(log) === workout._id);
     for (const item of workout.items) {
+      if (item.kind && item.kind !== "strength") {
+        piecesAssigned += 1;
+        const logged = linked.some((log) =>
+          log.items.some((entry) => samePiece(item, entry) && entry.sets.length > 0),
+        );
+        if (logged) piecesRecorded += 1;
+        continue;
+      }
       assigned += item.sets;
       recorded += linked.reduce((sum, log) => {
-        const match = log.items.find(
-          (entry) => exerciseKey(entry.exerciseId) === exerciseKey(item.exerciseId),
-        );
+        const match = log.items.find((entry) => samePiece(item, entry));
         return sum + (match?.sets.length ?? 0);
       }, 0);
     }
   }
-  return { assigned, recorded };
+  return { assigned, recorded, piecesAssigned, piecesRecorded };
 }
 
 export function tallyLine(recorded: number, assigned: number, showRecorded: boolean) {

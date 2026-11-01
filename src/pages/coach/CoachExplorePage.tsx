@@ -4,12 +4,21 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ArrowUpRight, Search } from "lucide-react";
 import toast from "react-hot-toast";
 import { api } from "../../services/api";
+import { SPORTS } from "../discover/catalog";
+
+type FollowUp = {
+  _id: string;
+  text: string;
+  sentAt?: string;
+};
 
 type AthleteCard = {
   _id: string;
   name: string;
   linkStatus: "none" | "invited" | "active" | "ended";
   offer: string;
+  sport?: string;
+  followUps?: FollowUp[];
   paid: boolean;
   profile: {
     goal: string;
@@ -44,7 +53,10 @@ export default function CoachExplorePage() {
   const queries = useQueryClient();
   const [search, setSearch] = useState("");
   const [openId, setOpenId] = useState("");
+  const [followId, setFollowId] = useState("");
   const [text, setText] = useState("I can train you.");
+  const [followText, setFollowText] = useState("");
+  const [sport, setSport] = useState<string>("Strength");
   const list = useQuery({
     queryKey: ["coach-explore"],
     queryFn: async () =>
@@ -52,7 +64,7 @@ export default function CoachExplorePage() {
   });
   const offer = useMutation({
     mutationFn: async (athleteId: string) =>
-      (await api.post(`/coach/explore/${athleteId}/offer`, { text: text.trim() }))
+      (await api.post(`/coach/explore/${athleteId}/offer`, { text: text.trim(), sport }))
         .data.data,
     onSuccess: () => {
       toast.success("Offer sent. They can accept it in account settings.");
@@ -62,6 +74,19 @@ export default function CoachExplorePage() {
     },
     onError: (error: any) =>
       toast.error(error.response?.data?.message || "The offer could not be sent."),
+  });
+  const followUp = useMutation({
+    mutationFn: async (athleteId: string) =>
+      (await api.post(`/coach/explore/${athleteId}/follow-up`, { text: followText.trim() }))
+        .data.data,
+    onSuccess: () => {
+      toast.success("Follow-up sent. They can read it with your offer.");
+      setFollowId("");
+      setFollowText("");
+      queries.invalidateQueries({ queryKey: ["coach-explore"] });
+    },
+    onError: (error: any) =>
+      toast.error(error.response?.data?.message || "The follow-up could not be sent."),
   });
   const needle = search.trim().toLowerCase();
   const rows = (list.data || []).filter((athlete) => {
@@ -81,9 +106,10 @@ export default function CoachExplorePage() {
           <p>See interests, then offer to train someone who is not on your team yet.</p>
         </div>
       </div>
-      <label className="athlete-search explore-search">
-        <Search size={16} />
+      <label className="explore-search">
+        <Search size={16} aria-hidden="true" />
         <input
+          type="search"
           aria-label="Search athletes"
           value={search}
           placeholder="Search by name, sport or city"
@@ -150,47 +176,147 @@ export default function CoachExplorePage() {
                     {athlete.paid ? "Open paid dashboard" : "Open dashboard"}
                     <ArrowUpRight size={15} />
                   </Link>
-                ) : athlete.linkStatus === "invited" && openId !== athlete._id ? (
-                  <p>Offer sent{athlete.offer ? `: ${athlete.offer}` : ""}</p>
-                ) : openId === athlete._id ? (
-                  <form
-                    onSubmit={(event) => {
-                      event.preventDefault();
-                      if (text.trim()) offer.mutate(athlete._id);
-                    }}
-                  >
-                    <label>
-                      Message
-                      <textarea
-                        className="fp-input"
-                        value={text}
-                        maxLength={500}
-                        required
-                        onChange={(event) => setText(event.target.value)}
-                      />
-                    </label>
-                    <div>
-                      <button className="primary-action" disabled={offer.isPending}>
-                        {offer.isPending ? "Sending…" : "Send offer"}
+                ) : athlete.linkStatus === "invited" ? (
+                  <div className="explore-status">
+                    <p>
+                      Offer sent
+                      {athlete.sport ? ` · ${athlete.sport}` : ""}
+                    </p>
+                    {followId !== athlete._id && (
+                      <button
+                        type="button"
+                        className="secondary-action"
+                        onClick={() => {
+                          setFollowId(athlete._id);
+                          setFollowText("");
+                          setOpenId("");
+                        }}
+                      >
+                        Send follow-up
                       </button>
-                      <button type="button" onClick={() => setOpenId("")}>
-                        Cancel
-                      </button>
-                    </div>
-                  </form>
-                ) : (
+                    )}
+                  </div>
+                ) : openId !== athlete._id ? (
                   <button
                     type="button"
                     className="primary-action"
                     onClick={() => {
                       setOpenId(athlete._id);
-                      setText(athlete.offer || "I can train you.");
+                      setFollowId("");
+                      setText("I can train you.");
+                      setSport(
+                        SPORTS.find((option) => athlete.profile.sports.includes(option)) ||
+                          "Strength",
+                      );
                     }}
                   >
                     Offer to train
                   </button>
-                )}
+                ) : null}
               </div>
+              {(athlete.linkStatus === "invited" || openId === athlete._id) && (
+                <div className="explore-thread">
+                  {athlete.linkStatus === "invited" && (
+                    <ol>
+                      <li>
+                        <p>{athlete.offer || "Offer sent."}</p>
+                        <span>Offer{athlete.sport ? ` · ${athlete.sport}` : ""}</span>
+                      </li>
+                      {(athlete.followUps || []).map((note) => (
+                        <li key={note._id}>
+                          <p>{note.text}</p>
+                          <span>
+                            Follow-up
+                            {note.sentAt
+                              ? ` · ${new Date(note.sentAt).toLocaleString(undefined, {
+                                  day: "numeric",
+                                  month: "short",
+                                  hour: "numeric",
+                                  minute: "2-digit",
+                                })}`
+                              : ""}
+                          </span>
+                        </li>
+                      ))}
+                    </ol>
+                  )}
+                  {openId === athlete._id && (
+                    <form
+                      className="explore-composer"
+                      onSubmit={(event) => {
+                        event.preventDefault();
+                        if (text.trim()) offer.mutate(athlete._id);
+                      }}
+                    >
+                      <label>
+                        Sport
+                        <select
+                          className="fp-input"
+                          value={sport}
+                          onChange={(event) => setSport(event.target.value)}
+                        >
+                          {SPORTS.map((option) => (
+                            <option key={option} value={option}>
+                              {option}
+                            </option>
+                          ))}
+                        </select>
+                      </label>
+                      <label>
+                        Message
+                        <textarea
+                          className="fp-input"
+                          value={text}
+                          maxLength={500}
+                          required
+                          onChange={(event) => setText(event.target.value)}
+                        />
+                      </label>
+                      <div className="explore-composer-actions">
+                        <button className="primary-action" disabled={offer.isPending}>
+                          {offer.isPending ? "Sending…" : "Send offer"}
+                        </button>
+                        <button type="button" className="secondary-action" onClick={() => setOpenId("")}>
+                          Cancel
+                        </button>
+                      </div>
+                    </form>
+                  )}
+                  {followId === athlete._id && (
+                    <form
+                      className="explore-composer"
+                      onSubmit={(event) => {
+                        event.preventDefault();
+                        if (followText.trim()) followUp.mutate(athlete._id);
+                      }}
+                    >
+                      <label>
+                        Follow-up
+                        <textarea
+                          className="fp-input"
+                          value={followText}
+                          maxLength={500}
+                          required
+                          placeholder="Write another message. Your first offer stays as it is."
+                          onChange={(event) => setFollowText(event.target.value)}
+                        />
+                      </label>
+                      <div className="explore-composer-actions">
+                        <button className="primary-action" disabled={followUp.isPending}>
+                          {followUp.isPending ? "Sending…" : "Send follow-up"}
+                        </button>
+                        <button
+                          type="button"
+                          className="secondary-action"
+                          onClick={() => setFollowId("")}
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    </form>
+                  )}
+                </div>
+              )}
             </li>
           );
         })}

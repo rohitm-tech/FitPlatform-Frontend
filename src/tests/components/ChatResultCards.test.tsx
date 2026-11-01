@@ -117,6 +117,6 @@ it("links a life-log summary back to the daily log", () => {
   expect(within(log).getByText("4 of 14 days logged")).toBeTruthy();
   expect(within(log).getByText("1,840 kcal/day · 92 g protein · 2.1 L water")).toBeTruthy();
   expect(screen.getByRole("link", { name: /Outside link/ }).getAttribute("href")).toBe(
-    "/athlete#dash-daylog-title",
+    "/athlete/recovery",
   );
 });

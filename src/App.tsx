@@ -37,6 +37,9 @@ const WorkoutLoggerPage = lazy(
   () => import("./pages/athlete/WorkoutLoggerPage"),
 );
 const HistoryPage = lazy(() => import("./pages/athlete/HistoryPage"));
+const CommunityPage = lazy(() => import("./pages/community/CommunityPage"));
+const EventsPage = lazy(() => import("./pages/community/EventsPage"));
+const EventDetailPage = lazy(() => import("./pages/community/EventDetailPage"));
 const CoachHome = lazy(() => import("./pages/coach/CoachHome"));
 const DiscoverPage = lazy(() => import("./pages/discover/DiscoverPage"));
 const PlaceDetailPage = lazy(
@@ -137,6 +140,9 @@ function App() {
             <Route path="/athlete/explorer" element={<MuscleExplorerPage />} />
             <Route path="/athlete/log" element={<WorkoutLoggerPage />} />
             <Route path="/athlete/history" element={<HistoryPage />} />
+            <Route path="/community" element={<CommunityPage />} />
+            <Route path="/events" element={<EventsPage />} />
+            <Route path="/events/:eventId" element={<EventDetailPage />} />
             <Route
               path="/athlete/insights"
               element={<Navigate to="/athlete" replace />}

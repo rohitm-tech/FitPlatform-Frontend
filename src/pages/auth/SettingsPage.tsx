@@ -276,8 +276,8 @@ export default function SettingsPage() {
           <div>
             <h2>Coach invitations</h2>
             <p className="settings-description">
-              Accept an invitation to let a coach assign workouts and review
-              your training.
+              Accept an invitation to train one sport with that coach. They can
+              then assign sessions measured for that sport.
             </p>
             <p className="settings-description">
               You control detailed record sharing under Training & privacy.
@@ -298,7 +298,15 @@ export default function SettingsPage() {
                     <div className="section-row">
                       <div>
                         <strong>{invite.coachId?.name || "A coach"}</strong>
-                        <p>{invite.offer || "Wants to coach you"}</p>
+                        <p>{invite.sport || "Strength"}</p>
+                        <p>{invite.offer || "Wants to coach you in this sport."}</p>
+                        {invite.followUps?.length > 0 && (
+                          <ul className="invite-followups">
+                            {invite.followUps.map((note: { _id: string; text: string }) => (
+                              <li key={note._id}>{note.text}</li>
+                            ))}
+                          </ul>
+                        )}
                       </div>
                       <div className="flex gap-2">
                         {[true, false].map((accept) => (

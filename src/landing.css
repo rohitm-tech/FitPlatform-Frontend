@@ -92,90 +92,8 @@
   color: var(--fp-text);
   font-weight: 600;
 }
-.hero-signal {
-  display: flex;
-  align-items: center;
-  gap: 20px;
-  padding: 24px 0 20px;
-}
-.signal-orbit {
-  border-radius: 50%;
-  width: 64px;
-  height: 64px;
-  border: 1px solid var(--fp-border);
-  background: var(--fp-surface);
-  color: var(--fp-accent-ink);
-  display: grid;
-  place-items: center;
-  flex-shrink: 0;
-}
-.hero-signal small {
-  font-size: 12px;
-  color: var(--fp-text);
-}
-.hero-signal h2 {
-  font-size: 23px;
-  line-height: 1.4;
-  font-weight: 750;
-  letter-spacing: -0.6px;
-  margin-top: 7px;
-}
-.hero-path {
-  background: var(--fp-surface);
-  border: 1px solid var(--fp-border);
-  border-radius: 13px;
-  padding: 0 18px;
-}
-.hero-path > div {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  padding: 13px 0;
-  color: var(--fp-accent-ink);
-}
-.hero-path > div + div {
-  border-top: 1px solid var(--fp-border);
-}
-.hero-path span {
-  font-size: 12px;
-  line-height: 1.9;
-  flex: 1;
-  color: var(--fp-text);
-}
-.hero-path strong {
-  font-size: 13px;
-  color: var(--fp-text);
-  font-weight: 700;
-}
-.hero-note {
-  display: flex;
-  align-items: center;
-  gap: 13px;
-  margin-top: 16px;
-}
-.note-avatar {
-  width: 34px;
-  height: 34px;
-  display: grid;
-  place-items: center;
-  font-size: 11px;
-  background: var(--fp-accent);
-  color: var(--fp-on-accent);
-  border-radius: 9px;
-}
-.hero-note p {
-  font-size: 12px;
-  color: var(--fp-text);
-  flex: 1;
-  line-height: 1.9;
-}
-.hero-note strong {
-  font-size: 11px;
-  font-weight: 650;
-  color: var(--fp-accent-ink);
-}
-.hero-note > svg {
-  color: var(--fp-text);
+.hero-day .scene-player {
+  margin-top: 18px;
 }
 .landing-capabilities {
   max-width: 1204px;
@@ -303,27 +221,7 @@
   align-items: center;
 }
 .ai-conversation-preview {
-  max-width: 460px;
-}
-.question-example {
-  background: var(--fp-surface);
-  border: 1px solid var(--fp-border);
-  display: flex;
-  gap: 15px;
-  align-items: center;
-  padding: 21px;
-  border-radius: 12px;
-  margin-top: 14px;
-  font-size: 12px;
-  font-weight: 650;
-  color: var(--fp-accent-ink);
-  box-shadow: 0 8px 25px var(--fp-veil);
-}
-.question-example:nth-of-type(2) {
-  margin-left: 25px;
-}
-.question-example:nth-of-type(3) {
-  margin-left: 50px;
+  max-width: 480px;
 }
 .preview-context {
   display: flex;
@@ -451,16 +349,6 @@
   .hero-day {
     padding: 21px;
   }
-  .hero-signal {
-    gap: 15px;
-  }
-  .signal-orbit {
-    height: 58px;
-    width: 58px;
-  }
-  .hero-signal h2 {
-    font-size: 20px;
-  }
   .landing-workflow {
     gap: 35px;
   }
@@ -503,14 +391,8 @@
     margin: auto;
     padding: 20px;
   }
-  .hero-signal {
-    padding: 23px 0;
-  }
   .hero-day-top {
     font-size: 11px;
-  }
-  .hero-path > div {
-    padding: 13px 0;
   }
   .landing-capabilities {
     margin: 0 22px;
@@ -567,9 +449,6 @@
   }
   .ai-conversation-preview {
     width: 100%;
-  }
-  .question-example {
-    padding: 17px;
   }
   .landing-features {
     grid-template-columns: 1fr;
@@ -1073,4 +952,179 @@
   .landing-price-grid {
     grid-template-columns: 1fr;
   }
+}
+
+.scene-player {
+  display: grid;
+  gap: 14px;
+}
+.scene-stage {
+  position: relative;
+  min-height: 220px;
+}
+.theater-scene + .theater-scene {
+  margin-top: 18px;
+  padding-top: 18px;
+  border-top: 1px solid var(--fp-border);
+}
+.scene-player.is-sequenced .scene-stage {
+  overflow: clip;
+}
+.scene-player.is-sequenced .theater-scene {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: auto;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+.scene-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+.scene-mark {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 1px solid var(--fp-border);
+  display: grid;
+  place-items: center;
+  flex: none;
+  color: var(--fp-accent-ink);
+  font-size: 11px;
+  font-weight: 750;
+}
+.scene-head strong {
+  display: block;
+  font-size: 14px;
+  font-weight: 750;
+  letter-spacing: -0.02em;
+}
+.scene-head span {
+  display: block;
+  margin-top: 2px;
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--fp-text-muted);
+}
+.reading-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 9px 0;
+  border-top: 1px solid var(--fp-border);
+  font-size: 13px;
+}
+.reading-row b {
+  font-variant-numeric: tabular-nums;
+  font-weight: 750;
+}
+.demo-source,
+.scene-footnote {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--fp-text-muted);
+}
+.demo-msg {
+  width: fit-content;
+  max-width: 94%;
+  margin-top: 10px;
+  padding: 10px 12px;
+  border: 1px solid var(--fp-border);
+  border-radius: 12px;
+}
+.theater-scene > .demo-msg:first-child {
+  margin-top: 0;
+}
+.demo-msg.from-you {
+  margin-left: auto;
+}
+.demo-msg.from-them {
+  background: var(--fp-surface-alt);
+}
+.demo-msg small,
+.coach-suggestion small {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--fp-text-muted);
+}
+.demo-msg p,
+.coach-suggestion p {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.5;
+}
+.with-icon {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+.with-icon svg {
+  flex: none;
+  margin-top: 2px;
+  color: var(--fp-accent-ink);
+}
+.scene-tabs {
+  display: none;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.scene-player.is-sequenced .scene-tabs {
+  display: flex;
+}
+.scene-tabs button {
+  flex: 1 1 0;
+  min-height: 44px;
+  padding: 8px 10px;
+  border: 1px solid var(--fp-border);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--fp-text);
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 650;
+}
+.scene-tabs button[aria-pressed="true"] {
+  border-color: var(--fp-accent);
+  background: var(--fp-accent-soft);
+  color: var(--fp-accent-ink);
+}
+@media (hover: hover) and (pointer: fine) {
+  .scene-tabs button[aria-pressed="true"]:hover {
+    background: var(--fp-accent-soft);
+    color: var(--fp-accent-ink);
+  }
+}
+.coach-thread {
+  display: grid;
+  gap: 10px;
+}
+.coach-thread .demo-msg {
+  margin-top: 0;
+}
+.theater-scene .coach-suggestion {
+  margin-top: 10px;
+}
+.coach-suggestion {
+  display: grid;
+  gap: 4px;
+  padding: 12px 14px;
+  border: 1px solid var(--fp-border);
+  border-radius: 12px;
+  background: var(--fp-attention-bg);
+}
+.coach-suggestion strong {
+  font-size: 13px;
+  font-weight: 750;
+  color: var(--fp-text);
+}
+.coach-suggestion p {
+  color: var(--fp-attention);
 }

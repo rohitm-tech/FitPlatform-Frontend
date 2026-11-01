@@ -18,6 +18,7 @@ import { useCoachPerformance } from "../../queries/usePerformance";
 import { useMyAthletes, useInviteAthlete } from "../../queries/useCoach";
 import { api } from "../../services/api";
 import { MonthCalendar } from "../../components/workout/MonthCalendar";
+import { SPORTS } from "../discover/catalog";
 import { MessageThread } from "../../components/common/MessageThread";
 import { CoachRateStrip } from "../../components/billing/PlanStrip";
 import "../../dashboard.css";
@@ -40,6 +41,7 @@ export default function CoachHome() {
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState("all");
   const [email, setEmail] = useState("");
+  const [sport, setSport] = useState("Strength");
   const [showInvite, setShowInvite] = useState(false);
   useEffect(() => {
     if (params.get("invite") === "1") setShowInvite(true);
@@ -151,8 +153,6 @@ export default function CoachHome() {
           </p>
           <CoachRateStrip
             inviteMinor={pricing.data?.coachInviteFeeMinor}
-            freeChatMinor={pricing.data?.freeCoachChatFeeMinor}
-            chatMinor={pricing.data?.coachChatFeeMinor}
             feePercent={pricing.data?.coachEarningsFeePercent}
           />
         </div>
@@ -163,11 +163,11 @@ export default function CoachHome() {
           onSubmit={async (e) => {
             e.preventDefault();
             try {
-              await invite.mutateAsync(email);
+              await invite.mutateAsync({ email, sport });
               toast.success(
                 pricing.data
-                  ? `Invitation sent. ${rupees(pricing.data.coachInviteFeeMinor)} invite fee recorded.`
-                  : "Invitation sent to the athlete’s account",
+                  ? `Invitation sent for ${sport}. ${rupees(pricing.data.coachInviteFeeMinor)} invite fee recorded.`
+                  : `Invitation sent for ${sport}.`,
               );
               setEmail("");
               setShowInvite(false);
@@ -189,6 +189,19 @@ export default function CoachHome() {
             placeholder="athlete@example.com"
             onChange={(e) => setEmail(e.target.value)}
           />
+          <label htmlFor="invite-sport">Sport</label>
+          <select
+            id="invite-sport"
+            className="fp-input"
+            value={sport}
+            onChange={(e) => setSport(e.target.value)}
+          >
+            {SPORTS.map((option) => (
+              <option key={option} value={option}>
+                {option}
+              </option>
+            ))}
+          </select>
           <button className="primary-action" disabled={invite.isPending}>
             Send invite
           </button>
@@ -271,7 +284,9 @@ export default function CoachHome() {
                           </span>
                           <span>
                             <strong>{r.athlete.name}</strong>
-                            <small>{r.athlete.email}</small>
+                            <small>
+                              {(r.sport || old?.sport || "Strength")} · {r.athlete.email}
+                            </small>
                           </span>
                         </button>
                       </td>
@@ -593,7 +608,7 @@ export default function CoachHome() {
               {!all.length && <option value="">No assigned athletes</option>}
               {all.map((row: any) => (
                 <option key={row.athlete._id} value={row.athlete._id}>
-                  {row.athlete.name}
+                  {row.athlete.name} · {row.sport || "Strength"}
                 </option>
               ))}
             </select>
@@ -609,8 +624,16 @@ export default function CoachHome() {
       </section>
       {(roster?.invited?.length ?? 0) > 0 && (
         <p className="small-note mt-6">
-          {roster?.invited?.length ?? 0} pending athlete invitations. Athletes
-          accept in their account settings.
+          {roster?.invited?.length ?? 0} pending athlete invitations
+          {roster?.invited?.length
+            ? `: ${roster.invited
+                .map(
+                  (invite) =>
+                    `${invite.athleteId?.name || "An athlete"} · ${invite.sport || "Strength"}`,
+                )
+                .join(", ")}`
+            : ""}
+          . They accept in account settings.
         </p>
       )}
     </motion.div>

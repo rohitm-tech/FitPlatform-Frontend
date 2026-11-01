@@ -4,7 +4,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Check, ChevronLeft, ChevronRight, ArrowUpRight } from "lucide-react";
 import toast from "react-hot-toast";
 import { useAthleteWorkouts } from "../../queries/useAthlete";
-import { useAssignTemplate, useTemplates } from "../../queries/useCoach";
+import { useAssignTemplate, useMyAthletes, useTemplates } from "../../queries/useCoach";
 import { athleteApi } from "../../services/endpoints/athleteApi";
 import { useAuth } from "../../hooks/useAuth";
 import { CommentsThread } from "./CommentsThread";
@@ -21,6 +21,13 @@ import {
   todayReminder,
 } from "./dayProgress";
 import type { Workout, WorkoutLog } from "../../types/domain";
+import {
+  formatLoggedSet,
+  isGymSession,
+  kindForSport,
+  pieceName,
+  sessionCountLabel,
+} from "../../lib/sessionSports";
 import "../../calendar.css";
 
 const dateKey = (date: Date) =>
@@ -337,6 +344,12 @@ export function MonthCalendar({
                 {tallyLine(tally.recorded, tally.assigned, self)}
               </p>
             )}
+            {tally.piecesAssigned > 0 && (
+              <p className="day-tally">
+                {tally.piecesRecorded} of {tally.piecesAssigned}{" "}
+                {tally.piecesAssigned === 1 ? "piece" : "pieces"} logged
+              </p>
+            )}
             <div className="data-list">
               {selectedWorkouts.map((workout) => (
                 <SessionBlock
@@ -376,16 +389,12 @@ export function MonthCalendar({
                         <li key={i}>
                           <span className="session-check logged">Logged</span>
                           <span className="session-move">
-                            <strong>
-                              {typeof item.exerciseId === "string"
-                                ? "Exercise"
-                                : item.exerciseId.name}
-                            </strong>
-                            <span>
-                              {item.sets
-                                .map((set) => `${set.reps} reps at ${set.weightKg} kg`)
-                                .join(" · ")}
-                            </span>
+                          <strong>{pieceName(item)}</strong>
+                          <span>
+                            {item.sets
+                              .map((set) => formatLoggedSet(set, item.kind))
+                              .join(" · ")}
+                          </span>
                           </span>
                         </li>
                       ))}
@@ -424,9 +433,15 @@ function AssignTemplate({
 }) {
   const queries = useQueryClient();
   const templates = useTemplates();
+  const roster = useMyAthletes();
   const assign = useAssignTemplate();
   const [templateId, setTemplateId] = useState("");
-  const saved = templates.data || [];
+  const sport =
+    roster.data?.athletes.find((row) => row.athlete._id === athleteId)?.sport ||
+    "Strength";
+  const saved = (templates.data || []).filter(
+    (template) => (template.sport || "Strength") === sport,
+  );
   const submit = async () => {
     if (!templateId) return;
     try {
@@ -444,11 +459,11 @@ function AssignTemplate({
       );
     }
   };
-  if (templates.isLoading) return <p>Loading templates…</p>;
+  if (templates.isLoading || roster.isLoading) return <p>Loading templates…</p>;
   if (!saved.length) {
     return (
       <Link className="text-action" to="/coach/builder">
-        Create a template to assign
+        Create a {sport} template to assign
         <ArrowUpRight size={14} />
       </Link>
     );
@@ -476,6 +491,9 @@ function AssignTemplate({
         {saved.map((template) => (
           <option key={template._id} value={template._id}>
             {template.title}
+            {kindForSport(template.sport || "Strength") !== "strength"
+              ? ` · ${template.sport}`
+              : ""}
           </option>
         ))}
       </select>
@@ -505,7 +523,8 @@ function SessionBlock({
 }) {
   const origin = assignmentSource(workout.assignedBy, athleteId);
   const rows = moveRows(workout, logs, showSets);
-  const assignedSets = workout.items.reduce((sum, item) => sum + item.sets, 0);
+  const gym = isGymSession(workout);
+  const assignedSets = workout.items.reduce((sum, item) => sum + (item.sets || 0), 0);
   const linkedLogs = logs.filter((log) => logWorkoutId(log) === workout._id);
   const minutes = linkedLogs.reduce((sum, log) => sum + (log.durationMin || 0), 0);
   const effort = linkedLogs.find((log) => log.perceivedEffort)?.perceivedEffort;
@@ -520,9 +539,11 @@ function SessionBlock({
         </span>
       </div>
       <p className="session-origin">
-        {originLabel} · {workout.items.length}{" "}
-        {workout.items.length === 1 ? "exercise" : "exercises"} · {assignedSets}{" "}
-        {assignedSets === 1 ? "set" : "sets"}
+        {originLabel}
+        {workout.sport ? ` · ${workout.sport}` : ""} · {sessionCountLabel(workout.items.length, gym)}
+        {gym
+          ? ` · ${assignedSets} ${assignedSets === 1 ? "set" : "sets"}`
+          : ""}
       </p>
       {showSets && workout.status === "completed" && linkedLogs.length === 0 && (
         <p className="section-note">Marked complete, with no set-by-set log.</p>

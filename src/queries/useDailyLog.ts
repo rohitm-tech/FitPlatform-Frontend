@@ -7,7 +7,9 @@ export type FoodEntry = {
   _id: string;
   meal: Meal;
   name: string;
+  quantity?: string;
   calories?: number | null;
+  estimated?: boolean;
   proteinG?: number | null;
   carbsG?: number | null;
   fatG?: number | null;

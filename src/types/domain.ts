@@ -89,13 +89,24 @@ export interface ExerciseRef {
 
 export type WorkoutStatus = 'planned' | 'completed' | 'skipped';
 
+export type SessionKind = 'strength' | 'swim' | 'endurance' | 'station' | 'rounds' | 'practice';
+export type StationMetric = 'reps' | 'distance' | 'time';
+
 export interface WorkoutItem {
-  exerciseId: ExerciseRef | string;
+  kind?: SessionKind;
+  label?: string;
+  exerciseId?: ExerciseRef | string | null;
   sets: number;
-  reps: number;
-  targetWeightKg: number | null;
-  restSec: number;
-  notes: string;
+  reps?: number | null;
+  targetWeightKg?: number | null;
+  restSec?: number | null;
+  distanceM?: number | null;
+  durationSec?: number | null;
+  paceSec?: number | null;
+  stroke?: string;
+  metric?: StationMetric | '';
+  effort?: number | null;
+  notes?: string;
 }
 
 export interface Workout {
@@ -104,6 +115,7 @@ export interface Workout {
   assignedBy: string;
   date: string;
   title: string;
+  sport?: string;
   items: WorkoutItem[];
   status: WorkoutStatus;
 }
@@ -111,10 +123,14 @@ export interface Workout {
 export interface SetLog {
   reps: number;
   weightKg: number;
+  distanceM?: number | null;
+  durationSec?: number | null;
 }
 
 export interface WorkoutLogItem {
-  exerciseId: ExerciseRef | string;
+  exerciseId?: ExerciseRef | string | null;
+  label?: string;
+  kind?: SessionKind;
   sets: SetLog[];
 }
 
@@ -172,6 +188,7 @@ export interface CoachAthleteSummary {
   neglectedMuscleGroups: NeglectedMuscleGroup[];
   coachAthleteId: string;
   linkStatus: string;
+  sport: string;
   unread: number;
 }
 
@@ -179,21 +196,31 @@ export interface InvitedAthlete {
   _id: string;
   athleteId: { _id: string; name: string; email: string } | null;
   status: string;
+  sport?: string;
 }
 
 export interface WorkoutTemplateItem {
-  exerciseId: ExerciseRef | string;
-  sets: number;
-  reps: number;
-  targetWeightKg: number | null;
-  restSec: number;
-  notes: string;
+  kind?: SessionKind;
+  label?: string;
+  exerciseId?: ExerciseRef | string | null;
+  sets?: number;
+  reps?: number | null;
+  targetWeightKg?: number | null;
+  restSec?: number | null;
+  distanceM?: number | null;
+  durationSec?: number | null;
+  paceSec?: number | null;
+  stroke?: string;
+  metric?: StationMetric | '';
+  effort?: number | null;
+  notes?: string;
 }
 
 export interface WorkoutTemplate {
   _id: string;
   coachId: string;
   title: string;
+  sport?: string;
   items: WorkoutTemplateItem[];
   createdAt: string;
 }

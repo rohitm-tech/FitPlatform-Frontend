@@ -11,7 +11,8 @@ export const useMyAthletes = () =>
 export const useInviteAthlete = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (email: string) => coachApi.inviteAthlete(email),
+    mutationFn: ({ email, sport }: { email: string; sport: string }) =>
+      coachApi.inviteAthlete(email, sport),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['coach-athletes'] }),
   });
 };

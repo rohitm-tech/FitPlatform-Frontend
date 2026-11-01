@@ -27,7 +27,12 @@ import {
   litres,
   useDailyLogs,
 } from "../../queries/useDailyLog";
-import type { WorkoutItem } from "../../types/domain";
+import {
+  formatPrescription,
+  isGymSession,
+  pieceName,
+  sessionCountLabel,
+} from "../../lib/sessionSports";
 
 type RecoveryRecord = {
   date: string;
@@ -93,12 +98,6 @@ function labelFromInstant(value: string) {
 
 function formatSleep(minutes: number) {
   return `${Math.floor(minutes / 60)}h ${minutes % 60}m`;
-}
-
-function exerciseName(item: WorkoutItem) {
-  return typeof item.exerciseId === "string"
-    ? "Exercise"
-    : item.exerciseId?.name || "Exercise";
 }
 
 function assignmentSource(assignedBy: string | undefined, athleteId?: string) {
@@ -328,10 +327,15 @@ function DayLogTile({ onLog }: { onLog: (tab: LogTab) => void }) {
     <section className="dash-tile dash-full dash-daylog" aria-labelledby="dash-daylog-title">
       <div className="dash-tile-head">
         <h2 id="dash-daylog-title">Today’s log</h2>
-        <button type="button" className="dash-link" onClick={() => onLog("food")}>
-          <Plus size={14} aria-hidden="true" />
-          Log something
-        </button>
+        <span className="dash-tile-actions">
+          <Link className="dash-link" to="/athlete/recovery">
+            All logs
+          </Link>
+          <button type="button" className="dash-link" onClick={() => onLog("food")}>
+            <Plus size={14} aria-hidden="true" />
+            Log something
+          </button>
+        </span>
       </div>
       {logs.isError ? (
         <p className="dash-muted">
@@ -875,21 +879,23 @@ export default function AthleteHome() {
                 <>
                   <p className="dash-tile-label">
                     {sessionIsToday ? "Today" : `Next · ${labelFromInstant(session.date)}`}
+                    {session.sport ? ` · ${session.sport}` : ""}
                     {source ? ` · ${source.label}` : ""}
                   </p>
                   <h2 id="dash-session-title">{session.title}</h2>
                   {session.items.length > 0 ? (
                     <ul className={`dash-moves${session.items.length > 3 ? " is-split" : ""}`}>
                       {session.items.slice(0, 5).map((item, index) => (
-                        <li key={`${exerciseName(item)}-${index}`}>
-                          <span>{exerciseName(item)}</span>
-                          <span>
-                            {item.sets}×{item.reps}
-                          </span>
+                        <li key={`${pieceName(item)}-${index}`}>
+                          <span>{pieceName(item)}</span>
+                          <span>{formatPrescription(item)}</span>
                         </li>
                       ))}
                       {session.items.length > 5 && (
-                        <li className="dash-muted">{session.items.length - 5} more exercises</li>
+                        <li className="dash-muted">
+                          {session.items.length - 5} more{" "}
+                          {isGymSession(session) ? "exercises" : "pieces"}
+                        </li>
                       )}
                     </ul>
                   ) : (
@@ -1032,10 +1038,8 @@ export default function AthleteHome() {
                           <span>
                             <strong>{workout.title}</strong>
                             <span>
-                              {origin.label} ·{" "}
-                              {workout.items.length === 1
-                                ? "1 exercise"
-                                : `${workout.items.length} exercises`}
+                              {workout.sport ? `${workout.sport} · ` : ""}
+                              {origin.label} · {sessionCountLabel(workout.items.length, isGymSession(workout))}
                             </span>
                           </span>
                           <ChevronRight size={16} aria-hidden="true" />

@@ -74,6 +74,11 @@
   justify-content: space-between;
   gap: 12px;
 }
+.dash-tile-actions {
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+}
 .dash-muted {
   margin-top: 8px;
   color: var(--fp-text-muted);

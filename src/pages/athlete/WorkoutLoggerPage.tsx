@@ -10,6 +10,8 @@ import {
 } from "../../queries/useAthlete";
 import { useExercises } from "../../queries/useExercises";
 import type { SetLog } from "../../types/domain";
+import { isGymSession } from "../../lib/sessionSports";
+import { SportSessionLog } from "../../components/athlete/SportSessionLog";
 type Item = { exerciseId: string; exerciseName: string; sets: SetLog[] };
 const BODY_AREAS: {
   id: string;
@@ -65,7 +67,7 @@ export default function WorkoutLoggerPage() {
     const list: { id: string; name: string }[] = [];
     for (const entry of logs.data || []) {
       for (const item of entry.items) {
-        if (typeof item.exerciseId === "string") continue;
+        if (!item.exerciseId || typeof item.exerciseId === "string") continue;
         if (seen.has(item.exerciseId._id)) continue;
         seen.add(item.exerciseId._id);
         list.push({ id: item.exerciseId._id, name: item.exerciseId.name });
@@ -94,15 +96,15 @@ export default function WorkoutLoggerPage() {
       setItems(
         assigned.items.map((item) => ({
           exerciseId:
-            typeof item.exerciseId === "string"
-              ? item.exerciseId
+            !item.exerciseId || typeof item.exerciseId === "string"
+              ? item.exerciseId || ""
               : item.exerciseId._id,
           exerciseName:
-            typeof item.exerciseId === "string"
-              ? "Exercise"
+            !item.exerciseId || typeof item.exerciseId === "string"
+              ? item.label || "Exercise"
               : item.exerciseId.name,
           sets: Array.from({ length: item.sets }, () => ({
-            reps: item.reps,
+            reps: item.reps ?? 0,
             weightKg: item.targetWeightKg ?? 0,
           })),
         })),
@@ -172,7 +174,10 @@ export default function WorkoutLoggerPage() {
       await log.mutateAsync({
         workoutId: workoutId || null,
         date: new Date(date + "T12:00:00").toISOString(),
-        items: items.map(({ exerciseId, sets }) => ({ exerciseId, sets })),
+        items: items.map(({ exerciseId, sets }) => ({
+          exerciseId,
+          sets: sets.map((set) => ({ reps: set.reps, weightKg: set.weightKg })),
+        })),
         durationMin: duration,
         perceivedEffort: effort,
         painFlag: pain,
@@ -195,6 +200,9 @@ export default function WorkoutLoggerPage() {
         </div>
       </div>
     );
+  if (assigned && !isGymSession(assigned)) {
+    return <SportSessionLog workout={assigned} athleteId={user?._id} />;
+  }
   return (
     <div className="product-page logger-page">
       <Link className="page-back" to="/athlete/history">

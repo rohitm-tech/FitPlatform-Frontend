@@ -1,4 +1,5 @@
 import PricingDesk from "./PricingDesk";
+import EventsDesk from "./EventsDesk";
 
 import { useEffect, useState } from "react";
 
@@ -91,6 +92,7 @@ export default function AdminHome() {
         coaches, gyms, and the marketplace. Amounts are in rupees.
       </p>
       <PricingDesk />
+      <EventsDesk />
       <div className="account-toolbar">
         <div>
           <h2>Accounts</h2>

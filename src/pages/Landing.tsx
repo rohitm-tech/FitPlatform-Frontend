@@ -21,9 +21,157 @@ import {
   ScanLine,
   Users,
   LockKeyhole,
+  Watch,
 } from "lucide-react";
 import { Logo } from "../components/common/Logo";
+import { ScenePlayer, type SceneSlide } from "../components/landing/ScenePlayer";
 import "../landing.css";
+
+const heroSlides: SceneSlide[] = [
+  {
+    id: "fitbit",
+    label: "Fitbit export",
+    hold: 2.6,
+    content: (
+      <>
+        <div className="beat scene-head">
+          <span className="scene-mark">
+            <Watch size={18} />
+          </span>
+          <div>
+            <strong>Fitbit sleep export</strong>
+            <span>Imported for 1 Nov. Not a live connection.</span>
+          </div>
+        </div>
+        {[
+          ["Sleep", "7h 12m"],
+          ["Resting heart rate", "54 bpm"],
+          ["Steps", "8,420"],
+        ].map(([name, value]) => (
+          <div className="beat reading-row" key={name}>
+            <span>{name}</span>
+            <b>{value}</b>
+          </div>
+        ))}
+        <p className="beat demo-source">Source · Fitbit export · 1 Nov</p>
+      </>
+    ),
+  },
+  {
+    id: "hero-ai",
+    label: "AI chat",
+    hold: 3.4,
+    content: (
+      <>
+        <div className="beat demo-msg from-you">
+          <small>Aarav Sharma</small>
+          <p>How does my recovery look?</p>
+        </div>
+        <div className="beat demo-msg from-them">
+          <small>Companion</small>
+          <p>
+            Sleep was 7h 12m and resting heart rate was 54, from today’s Fitbit
+            export. Keep the session. Ease the last set if your legs feel heavy.
+          </p>
+        </div>
+      </>
+    ),
+  },
+  {
+    id: "hero-coach",
+    label: "Coach",
+    hold: 3.4,
+    content: (
+      <>
+        <div className="beat demo-msg from-you">
+          <small>Aarav Sharma</small>
+          <p>Legs felt heavy on the last set.</p>
+        </div>
+        <div className="beat demo-msg from-them">
+          <small>Manish Chauhan</small>
+          <p>Drop the last working set today. We’ll put it back on Thursday.</p>
+        </div>
+        <div className="beat coach-suggestion">
+          <small>Suggestion</small>
+          <strong>Lower body · last working set removed</strong>
+          <p>Not applied. The plan changes when you approve it.</p>
+        </div>
+      </>
+    ),
+  },
+];
+
+const askSlides: SceneSlide[] = [
+  {
+    id: "ask-meal",
+    label: "Meal photo",
+    hold: 3.2,
+    content: (
+      <>
+        <div className="beat demo-msg from-you">
+          <small>Aarav Sharma</small>
+          <p className="with-icon">
+            <Camera size={16} />
+            Help me understand this meal.
+          </p>
+        </div>
+        <div className="beat demo-msg from-them">
+          <small>Companion</small>
+          <p>
+            Looks like a rice-and-dal plate, about 620 kcal. The estimate is
+            approximate — log it if that matches what you ate.
+          </p>
+        </div>
+      </>
+    ),
+  },
+  {
+    id: "ask-recovery",
+    label: "Recovery",
+    hold: 3.2,
+    content: (
+      <>
+        <div className="beat demo-msg from-you">
+          <small>Aarav Sharma</small>
+          <p className="with-icon">
+            <Moon size={16} />
+            How does my recovery look?
+          </p>
+        </div>
+        <div className="beat demo-msg from-them">
+          <small>Companion</small>
+          <p>
+            7h 12m of sleep and a resting heart rate of 54, from the Fitbit
+            export on 1 Nov. You’re set for today’s session.
+          </p>
+        </div>
+      </>
+    ),
+  },
+  {
+    id: "ask-today",
+    label: "Today",
+    hold: 3.2,
+    content: (
+      <>
+        <div className="beat demo-msg from-you">
+          <small>Aarav Sharma</small>
+          <p className="with-icon">
+            <Dumbbell size={16} />
+            What should I focus on today?
+          </p>
+        </div>
+        <div className="beat demo-msg from-them">
+          <small>Companion</small>
+          <p>
+            The main lift. Leave a rep in reserve on the last set if your legs
+            still feel heavy.
+          </p>
+        </div>
+      </>
+    ),
+  },
+];
 function Workflow() {
   const ref = useRef<HTMLElement>(null);
   useGSAP(
@@ -138,6 +286,25 @@ function AudienceFeatures() {
   });
   const { contextSafe } = useGSAP(
     () => {
+      const media = gsap.matchMedia();
+      media.add("(prefers-reduced-motion: no-preference)", () => {
+        gsap.fromTo(
+          ".coach-beat",
+          { opacity: 0.55, y: 12 },
+          {
+            opacity: 1,
+            y: 0,
+            duration: 0.45,
+            stagger: 0.12,
+            ease: "power3.out",
+            scrollTrigger: {
+              trigger: ".coach-preview",
+              start: "top 78%",
+              once: true,
+            },
+          },
+        );
+      });
       gsap.utils
         .toArray<HTMLElement>(".audience-panel", ref.current!)
         .forEach((panel) => {
@@ -149,6 +316,7 @@ function AudienceFeatures() {
             onEnterBack: () => setActive(panel.dataset.audience!),
           });
         });
+      return () => media.revert();
     },
     { scope: ref },
   );
@@ -258,18 +426,21 @@ function AudienceFeatures() {
           <div className="preview-surface">
             <Users size={24} />
             <h4>A decision, with evidence.</h4>
-            <div className="preview-evidence">
-              <div>
-                <span>Recorded work</span>
-                <strong>Completion evidence</strong>
+            <div className="coach-thread">
+              <div className="coach-beat demo-msg from-you">
+                <small>Aarav Sharma</small>
+                <p>Legs felt heavy on the last set.</p>
               </div>
-              <div>
-                <span>Available signals</span>
-                <strong>Recovery context</strong>
+              <div className="coach-beat demo-msg from-them">
+                <small>Manish Chauhan</small>
+                <p>
+                  Drop the last working set today. We’ll put it back on Thursday.
+                </p>
               </div>
-              <div>
-                <span>Your judgment</span>
-                <strong>Approve or adapt</strong>
+              <div className="coach-beat coach-suggestion">
+                <small>Suggestion</small>
+                <strong>Lower body · last working set removed</strong>
+                <p>Not applied. The plan changes when you approve it.</p>
               </div>
             </div>
             <div className="preview-approval">
@@ -404,8 +575,6 @@ type PublicPricing = {
     features: PricingFeature[];
   }[];
   coachInviteFeeMinor: number;
-  freeCoachChatFeeMinor?: number;
-  coachChatFeeMinor: number;
   coachEarningsFeePercent: number;
   gymMonthlyMinor: number;
   marketplaceFeePercent: number;
@@ -505,15 +674,8 @@ function Pricing() {
               <li>
                 <Check size={15} />
                 <span>
-                  Chat on Free
-                  <em>{rupees(data.freeCoachChatFeeMinor ?? 20000)} to talk with a coach</em>
-                </span>
-              </li>
-              <li>
-                <Check size={15} />
-                <span>
-                  Extra coach chat
-                  <em>{rupees(data.coachChatFeeMinor)} after Premium's 3 included chats</em>
+                  Message your athletes
+                  <em>Free</em>
                 </span>
               </li>
               <li>
@@ -619,56 +781,11 @@ export default function Landing() {
             <span>A day in motion</span>
             <span className="illustration-label">Product preview</span>
           </div>
-          <div className="hero-signal">
-            <span className="signal-orbit">
-              <Moon size={28} />
-            </span>
-            <div>
-              <small>Start with your signals</small>
-              <h2>
-                A little more context.
-                <br />A better next step.
-              </h2>
-            </div>
-          </div>
-          <div className="hero-path">
-            <div>
-              <Activity size={19} />
-              <span>
-                Recovery
-                <br />
-                <strong>Recorded</strong>
-              </span>
-              <Check size={16} />
-            </div>
-            <div>
-              <Dumbbell size={19} />
-              <span>
-                Your session
-                <br />
-                <strong>Planned</strong>
-              </span>
-              <Check size={16} />
-            </div>
-            <div>
-              <ShieldCheck size={19} />
-              <span>
-                Coach review
-                <br />
-                <strong>In the loop</strong>
-              </span>
-              <ArrowUpRight size={16} />
-            </div>
-          </div>
-          <div className="hero-note">
-            <span className="note-avatar">AI</span>
-            <p>
-              More than a plan.
-              <br />
-              <strong>A conversation grounded in you.</strong>
-            </p>
-            <Camera size={20} />
-          </div>
+          <ScenePlayer
+            slides={heroSlides}
+            label="Preview scenes"
+            footnote="Illustrative preview. Wearable figures are a Fitbit export, not a live connection."
+          />
         </div>
       </section>
       <div className="landing-capabilities">
@@ -682,19 +799,11 @@ export default function Landing() {
       <Workflow />
       <section className="landing-ai">
         <div className="ai-conversation-preview">
-          <span className="illustration-label">What you can ask</span>
-          <div className="question-example">
-            <Camera size={20} />
-            <span>Help me understand this meal.</span>
-          </div>
-          <div className="question-example">
-            <Moon size={20} />
-            <span>How does my recovery look?</span>
-          </div>
-          <div className="question-example">
-            <Dumbbell size={20} />
-            <span>What should I focus on today?</span>
-          </div>
+          <ScenePlayer
+            slides={askSlides}
+            label="Sample questions"
+            footnote="Illustrative conversation. Meal-photo estimates are approximate."
+          />
           <div className="preview-context">
             <span>Training history</span>
             <span>Recovery records</span>

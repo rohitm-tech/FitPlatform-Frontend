@@ -381,9 +381,14 @@ function FoodTab({
               .map((food) => (
                 <li key={food._id}>
                   <span className="log-list-meal">{label}</span>
-                  <span className="log-list-name">{food.name}</span>
+                  <span className="log-list-name">
+                    {food.name}
+                    {food.quantity ? ` · ${food.quantity}` : ""}
+                  </span>
                   <span className="log-list-value">
-                    {food.calories != null ? `${Math.round(food.calories)} kcal` : "—"}
+                    {food.calories != null
+                      ? `${Math.round(food.calories)} kcal${food.estimated ? " est." : ""}`
+                      : "—"}
                   </span>
                   <button
                     type="button"

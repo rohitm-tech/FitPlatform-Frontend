@@ -83,7 +83,11 @@ export default function AthleteDetailPage() {
                 <strong>
                   {daysTogether} {daysTogether === 1 ? "day" : "days"}
                 </strong>
-                <span>with you · since {formatDay(coachingSince)}</span>
+                <span>
+                  with you
+                  {dashboard.data.sport ? ` · ${dashboard.data.sport}` : ""} · since{" "}
+                  {formatDay(coachingSince)}
+                </span>
               </>
             ) : (
               <>

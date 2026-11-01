@@ -3,6 +3,8 @@ import { useQueryClient } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import { ArrowLeft, Upload, CheckCircle2 } from "lucide-react";
 import { CheckInControl } from "../../components/athlete/CheckInDialog";
+import { DayLogBoard } from "../../components/athlete/DayLogBoard";
+import { dayKey } from "../../queries/useDailyLog";
 import toast from "react-hot-toast";
 import { usePerformance } from "../../queries/usePerformance";
 import { api } from "../../services/api";
@@ -17,7 +19,7 @@ export default function RecoveryPage() {
     if (formError) errorRef.current?.focus();
   }, [formError]);
   const [consent, setConsent] = useState(false);
-  const [date, setDate] = useState(new Date().toISOString().slice(0, 10));
+  const [date, setDate] = useState(dayKey());
   const [values, setValues] = useState<Record<string, string>>({
     sleepMinutes: "",
     restingHeartRate: "",
@@ -122,6 +124,7 @@ export default function RecoveryPage() {
           <button onClick={() => refetch()}>Retry</button>
         </div>
       )}
+      <DayLogBoard />
       <div className="recovery-page-grid">
         <form className="work-panel" onSubmit={save}>
           <div className="section-heading">
@@ -337,47 +340,6 @@ export default function RecoveryPage() {
               </article>
             ))
           )}
-        </div>
-      </section>
-      <section className="work-panel mt-6">
-        <div className="section-heading">
-          <h2>Your recovery records</h2>
-          <span>{data?.records?.length || 0} recent entries</span>
-        </div>
-        <div className="table-scroll">
-          <table className="product-table">
-            <thead>
-              <tr>
-                <th>Date</th>
-                <th>Source</th>
-                <th>Sleep</th>
-                <th>HRV</th>
-                <th>Resting HR</th>
-                <th>Steps</th>
-              </tr>
-            </thead>
-            <tbody>
-              {data?.records?.map((r: any) => (
-                <tr key={r._id}>
-                  <td>{r.date}</td>
-                  <td>
-                    {r.sourceLabel || r.source}
-                    {r.source === "demo" && (
-                      <span className="demo-badge">Demo</span>
-                    )}
-                  </td>
-                  <td>
-                    {r.sleepMinutes != null
-                      ? `${Math.floor(r.sleepMinutes / 60)}h ${r.sleepMinutes % 60}m`
-                      : "—"}
-                  </td>
-                  <td>{r.hrvMs ?? "—"}</td>
-                  <td>{r.restingHeartRate ?? "—"}</td>
-                  <td>{r.steps?.toLocaleString() ?? "—"}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
         </div>
       </section>
     </div>

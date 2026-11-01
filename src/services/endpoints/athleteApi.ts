@@ -17,7 +17,12 @@ export interface CreateWorkoutPayload {
 export interface LogWorkoutPayload {
   workoutId?: string | null;
   date?: string;
-  items: { exerciseId: string; sets: { reps: number; weightKg: number }[] }[];
+  items: {
+    exerciseId?: string;
+    label?: string;
+    kind?: 'strength' | 'swim' | 'endurance' | 'station' | 'rounds' | 'practice';
+    sets: { reps?: number; weightKg?: number; distanceM?: number; durationSec?: number }[];
+  }[];
   durationMin?: number;
   perceivedEffort?: number | null;
   painFlag?: boolean;

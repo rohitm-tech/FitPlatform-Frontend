@@ -36,7 +36,7 @@ export function AthletePlanStrip() {
         <span>
           {onPremium
             ? `${rupees(premium?.priceMinor)} a month`
-            : `Subscribe for the AI coach, wearables, and coach chats${premium ? ` · ${rupees(premium.priceMinor)} a month` : ""}`}
+            : `Subscribe for the community, AI coach, wearables, and coach chats${premium ? ` · ${rupees(premium.priceMinor)} a month` : ""}`}
         </span>
       </p>
       <Link className={onPremium ? "is-quiet" : ""} to="/settings?section=plan">
@@ -48,24 +48,18 @@ export function AthletePlanStrip() {
 
 export function CoachRateStrip({
   inviteMinor,
-  freeChatMinor,
-  chatMinor,
   feePercent,
 }: {
   inviteMinor?: number;
-  freeChatMinor?: number;
-  chatMinor?: number;
   feePercent?: number;
 }) {
-  if (inviteMinor == null || chatMinor == null || feePercent == null) return null;
+  if (inviteMinor == null || feePercent == null) return null;
   return (
     <aside className="plan-chip" aria-label="Your coaching rates">
       <p>
         <strong>Free to coach</strong>
         <span>
-          Invite {rupees(inviteMinor)}
-          {freeChatMinor != null ? ` · Free chat ${rupees(freeChatMinor)}` : ""}
-          {` · Extra chat ${rupees(chatMinor)} · Company keeps ${feePercent}%`}
+          Messages to your athletes are free · Invite {rupees(inviteMinor)} · Company keeps {feePercent}%
         </span>
       </p>
     </aside>
